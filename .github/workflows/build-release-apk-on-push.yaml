@@ -49,11 +49,7 @@ jobs:
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
 
       - name: Download Firebase Congig
-        id: firebase_config
-        uses: timheuer/base64-to-file@v1.0.3
-        with:
-          fileName: android/app/google-services.json
-          encodedString: ${{ secrets.FIREBASE_CONFIG }}
+        run: echo "${{ secrets.FIREBASE_CONFIG }}" > android/app/google-services.json
 
       - name: Build Android Apk Release
         run: flutter build apk --release
