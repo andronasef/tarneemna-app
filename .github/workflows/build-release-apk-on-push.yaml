@@ -47,6 +47,14 @@ jobs:
           echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+
+      - name: Download Firebase Congig
+        id: firebase_config
+        uses: timheuer/base64-to-file@v1.0.3
+        with:
+          fileName: google-services.json
+          encodedString: ${{ secrets.FIREBASE_CONFIG }}
+
       - name: Build Android Apk Release
         run: flutter build apk --release
 
