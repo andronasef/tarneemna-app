@@ -62,5 +62,5 @@ jobs:
       - name: Get Apk Here
         uses: actions/upload-artifact@v2
         with:
-          name: my-artifact
+          name: App
           path: build/app/outputs/flutter-apk/app-release.apk
