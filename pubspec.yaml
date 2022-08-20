@@ -1,0 +1,60 @@
+name: tarneemna
+description: A Search and Download for Tarneem App
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.16.2 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  youtube_explode_dart: ^1.11.0
+  just_audio: ^0.9.28
+  get: ^4.6.5
+  flutter_downloader: ^1.7.4
+  path_provider: ^2.0.11
+  permission_handler: ^10.0.0
+  firebase_analytics: ^9.3.0
+  url_launcher: ^6.1.5
+  firebase_core: ^1.20.0
+  google_fonts: ^3.0.1
+  android_path_provider: ^0.3.0
+  flutter_fadein: ^2.0.0
+  miniplayer: ^1.0.1
+  internet_connection_checker: ^0.0.1+4
+  flutter_hooks: ^0.18.5+1
+  flutter_markdown: ^0.6.10+3
+  share_plus: ^4.0.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: # flutter pub run flutter_launcher_icons:main
+  flutter_native_splash: # flutter pub run flutter_native_splash:create
+  dapackages: # flutter pub run dapackages:dapackages.dart ./pubspec.yaml
+
+  flutter_lints: ^1.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/md/
+
+flutter_icons:
+  android: 'launcher_icon'
+  image_path: 'icon.png' # TODO: Add Logo
+
+flutter_native_splash:
+  color: '#e05438'
+  #background_image: "assets/background.png"
+  image: splash.png # TODO: Add The Same Logo
+  #color_dark: "#042a49"
+  #background_image_dark: "assets/dark-background.png"
+  #image_dark: assets/splash-invert.png
