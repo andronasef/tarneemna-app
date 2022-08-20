@@ -54,7 +54,7 @@ jobs:
         id: firebase_config
         uses: timheuer/base64-to-file@v1.0.3
         with:
-          fileName: google-services.json
+          fileName: android/google-services.json
           encodedString: ${{ secrets.FIREBASE_CONFIG }}
 
       - name: Create key.properties
