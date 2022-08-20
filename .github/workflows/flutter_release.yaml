@@ -51,7 +51,12 @@ jobs:
           encodedString: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
       - name: Download Firebase Congig
-        run: echo "${{ secrets.FIREBASE_CONFIG }}" > android/app/google-services.json
+        id: firebase_config
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: 'google-services.json'
+          json: ${{ secrets.FIREBASE_CONFIG }}
+          dir: 'android/app/'
 
       - name: Create key.properties
         run: |
