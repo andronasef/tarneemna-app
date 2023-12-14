@@ -48,4 +48,4 @@ app.*.map.json
 # FastLane
 Appfile
 Fastfile
-
+.idx

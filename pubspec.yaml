@@ -19,18 +19,18 @@ dependencies:
   get: ^4.6.5
   flutter_downloader: ^1.7.4
   path_provider: ^2.0.11
-  permission_handler: ^10.0.0
-  firebase_analytics: ^9.3.0
+  permission_handler: ^11.0.1
+  firebase_analytics: ^10.7.4
   url_launcher: ^6.1.5
-  firebase_core: ^1.20.0
-  google_fonts: ^3.0.1
+  firebase_core: ^2.24.2
+  google_fonts: ^4.0.4
   android_path_provider: ^0.3.0
   flutter_fadein: ^2.0.0
   miniplayer: ^1.0.1
-  internet_connection_checker: ^0.0.1+4
-  flutter_hooks: ^0.18.5+1
+  internet_connection_checker: ^1.0.0+1
+  flutter_hooks: ^0.20.3
   flutter_markdown: ^0.6.10+3
-  share_plus: ^4.0.10
+  share_plus: ^7.2.1
 
 dev_dependencies:
   flutter_test:
@@ -39,7 +39,7 @@ dev_dependencies:
   flutter_native_splash: # flutter pub run flutter_native_splash:create
   dapackages: # flutter pub run dapackages:dapackages.dart ./pubspec.yaml
 
-  flutter_lints: ^1.0.0
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true

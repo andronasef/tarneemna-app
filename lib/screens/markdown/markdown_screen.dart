@@ -41,7 +41,7 @@ class _MarkdownPageState extends State<MarkdownPage> {
               padding: const EdgeInsets.all(12),
               child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      primary: context.theme.colorScheme.secondary),
+                      backgroundColor: context.theme.colorScheme.secondary),
                   onPressed: () {
                     Get.back();
                   },
