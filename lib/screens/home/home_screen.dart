@@ -1,8 +1,4 @@
-import 'dart:isolate';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_fadein/flutter_fadein.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/core/values.dart';
@@ -14,13 +10,6 @@ import 'widgets/miniplayer.dart';
 import 'widgets/tarnema_search.dart';
 import 'widgets/tarneem_list.dart';
 
-@pragma('vm:entry-point')
-void downloadCallback(String id, int status, int progress) {
-  final SendPort? send =
-      IsolateNameServer.lookupPortByName('downloader_send_port');
-  send?.send([id, status, progress]);
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,36 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeController controller = Get.put(HomeController());
-  final ReceivePort _port = ReceivePort();
-
-  @override
-  void initState() {
-    super.initState();
-
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    IsolateNameServer.registerPortWithName(
-      _port.sendPort,
-      'downloader_send_port',
-    );
-    _port.listen((dynamic data) {
-      if (data is List && data.length >= 3) {
-        final id = data[0] as String;
-        final rawStatus = data[1] as int;
-        final progress = data[2] as int;
-        final status = DownloadTaskStatus.values[rawStatus];
-        controller.updateDownloadStatus(id, status, progress);
-      }
-    });
-
-    FlutterDownloader.registerCallback(downloadCallback);
-  }
-
-  @override
-  void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    _port.close();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

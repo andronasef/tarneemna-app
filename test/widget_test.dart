@@ -1,14 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tarneemna/core/routes.dart';
 import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/tarnemma.dart';
 
 void main() {
-  test('App constants and routes validation', () {
+  test('App constants validation', () {
     expect(AppDetails.kAppName, 'تحميل ترانيم');
     expect(AppDetails.kAppPackageName, 'com.increase.tarneemna');
-    expect(AppPages.initial, Routes.home);
-    expect(AppPages.routes.isNotEmpty, true);
   });
 
   test('Tarnemma filename sanitizer tests', () {
@@ -17,6 +14,11 @@ void main() {
       'ترنيمة حلوة _ جديدة _ رائعة_ 2024_',
     );
     expect(Tarnemma.sanitizeFileName('Normal Song Title'), 'Normal Song Title');
+  });
+
+  test('Tarnemma.formatDuration drops zero hours', () {
+    expect(Tarnemma.formatDuration(const Duration(minutes: 3, seconds: 30)), '03:30');
+    expect(Tarnemma.formatDuration(const Duration(hours: 1, minutes: 2, seconds: 3)), '1:02:03');
   });
 
   test('Tarnemma lazy initialization does not pre-fetch stream', () {

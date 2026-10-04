@@ -1,41 +1,19 @@
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:tarneemna/features/downloads/data/sources/download_manager_service.dart';
+import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/hymns/data/repositories/hybrid_hymns_repository_impl.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/taranim_arabia/data/repositories/taranim_arabia_repository_impl.dart';
 import 'package:tarneemna/features/taranim_arabia/data/sources/taranim_arabia_remote_data_source.dart';
 import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
-import 'package:youtube_explode_webview/youtube_explode_webview.dart';
 
 import 'player.dart';
 import 'widgets/snackbar.dart';
-
-WebviewEJSSolver? _jsSolver;
-YoutubeExplode? _yt;
-
-YoutubeExplode get yt {
-  _yt ??= YoutubeExplode(jsSolver: _jsSolver);
-  return _yt!;
-}
-
-Future<void> initYoutubeExplode() async {
-  try {
-    _jsSolver = await WebviewEJSSolver.init();
-    _yt = YoutubeExplode(jsSolver: _jsSolver);
-    if (kDebugMode) print("WebviewEJSSolver initialized successfully!");
-  } catch (e) {
-    if (kDebugMode) print("Failed to initialize WebviewEJSSolver: $e");
-    _yt = YoutubeExplode();
-  }
-}
 
 class Tarnemma {
   final String title;
@@ -44,9 +22,10 @@ class Tarnemma {
   final String id;
   String? downloadUrl;
   final String thumbnail;
-  String? taskId;
   final HymnSource source;
   final String? lyrics;
+
+  static final DownloadManagerService _downloads = DownloadManagerService();
 
   final Rx<DownloadTaskStatus> downloadProcess =
       DownloadTaskStatus.undefined.obs;
@@ -60,10 +39,13 @@ class Tarnemma {
     required this.id,
     this.downloadUrl,
     required this.thumbnail,
-    this.taskId,
     this.source = HymnSource.youtube,
     this.lyrics,
-  });
+  }) {
+    try {
+      if (OfflineStorageService().isDownloaded(id)) downloadProcess.value = DownloadTaskStatus.complete;
+    } catch (_) {} // storage box not open (e.g. in tests)
+  }
 
   Hymn toHymn() {
     return Hymn(
@@ -83,13 +65,17 @@ class Tarnemma {
       title: hymn.title,
       author: hymn.singer ?? (hymn.source == HymnSource.taranimar ? 'ترانيم عربية' : 'غير معروف'),
       thumbnail: hymn.artworkUrl ?? 'https://taranimarabia.org/img/logo.png',
-      duration: hymn.duration != null
-          ? hymn.duration.toString().split('.').first
-          : '03:30',
+      duration: hymn.duration != null ? formatDuration(hymn.duration!) : '',
       downloadUrl: hymn.audioUrl,
       source: hymn.source,
       lyrics: hymn.lyrics,
     );
+  }
+
+  /// "0:03:30" -> "03:30"; keeps hours when present.
+  static String formatDuration(Duration d) {
+    final s = d.toString().split('.').first;
+    return s.startsWith('0:') ? s.substring(2) : s;
   }
 
   /// Performs hybrid search querying both Taranim Arabia and YouTube Explode
@@ -113,80 +99,16 @@ class Tarnemma {
   }
 
   static Future<List<Tarnemma>> _searchYouTubeOnly(String query) async {
-    final List<Tarnemma> list = [];
-    try {
-      if (kDebugMode) print("Querying YouTube for: $query");
-      final searchList = await yt.search.search(query);
-
-      for (final video in searchList) {
-        try {
-          final song = Tarnemma(
-            title: video.title,
-            duration: video.duration?.toString().split('.').first ?? "00:00",
-            author: video.author,
-            id: video.id.value,
-            thumbnail: video.thumbnails.standardResUrl.isNotEmpty
-                ? video.thumbnails.standardResUrl
-                : video.thumbnails.highResUrl,
-            source: HymnSource.youtube,
-          );
-          list.add(song);
-        } catch (e) {
-          if (kDebugMode) print("Error parsing video search result: $e");
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) print("Search error: $e");
-      rethrow;
-    }
-    return list;
-  }
-
-  static Future<String> getDownloadPath() async {
-    if (Platform.isAndroid) {
-      final downloadsDir = Directory('/storage/emulated/0/Download');
-      if (downloadsDir.existsSync()) {
-        return downloadsDir.path;
-      }
-      final externalDir = await getExternalStorageDirectory();
-      if (externalDir != null) {
-        return externalDir.path;
-      }
-    }
-    final appDocDir = await getApplicationDocumentsDirectory();
-    return appDocDir.path;
+    final hymns = await YouTubeAudioResolver.searchVideos(query);
+    return hymns.map(Tarnemma.fromHymn).toList();
   }
 
   static String sanitizeFileName(String input) {
     return input.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').trim();
   }
 
-  static Future<bool> checkAndRequestPermissions() async {
-    if (!Platform.isAndroid) return true;
-
-    try {
-      final storageStatus = await Permission.storage.status;
-      if (!storageStatus.isGranted) {
-        await Permission.storage.request();
-      }
-
-      final notificationStatus = await Permission.notification.status;
-      if (!notificationStatus.isGranted) {
-        await Permission.notification.request();
-      }
-    } catch (e) {
-      if (kDebugMode) print("Permission request error: $e");
-    }
-
-    return true;
-  }
-
   Future<void> play() async {
     await Player.playTarnemma(this);
-  }
-
-  static Future<String?> resolveVisionOsAudio(String videoId) async {
-    return YouTubeAudioResolver.resolveVisionOsAudio(videoId);
   }
 
   Future<String?> getAudioUrl() async {
@@ -214,7 +136,12 @@ class Tarnemma {
     return null;
   }
 
+  /// Same in-app download as the album / singer / player screens, so the file
+  /// lands in app storage and shows up under "الترانيم المحملة".
   Future<void> download() async {
+    final status = downloadProcess.value;
+    if (status == DownloadTaskStatus.running || status == DownloadTaskStatus.enqueued) return;
+
     final hasInternet = await InternetConnectionChecker().hasConnection;
     if (!hasInternet) {
       showCustomSnackbar(
@@ -225,75 +152,16 @@ class Tarnemma {
       return;
     }
 
-    final hasPermission = await checkAndRequestPermissions();
-    if (!hasPermission) {
-      showCustomSnackbar(
-        "خطأ في الصلاحيات",
-        "يرجى منح صلاحية التخزين لحفظ الترانيم",
-        Icons.folder_off,
-      );
-      return;
-    }
-
-    downloadProcess.value = DownloadTaskStatus.enqueued;
-    downloadProgress.value = 0;
-
-    final url = await getAudioUrl();
-    if (url == null || url.isEmpty) {
-      downloadProcess.value = DownloadTaskStatus.failed;
-      showCustomSnackbar(
-        "خطأ في التحميل",
-        "تعذر استخراج رابط الصوت للتحميل",
-        Icons.error_outline,
-      );
-      return;
-    }
-
+    downloadProcess.value = DownloadTaskStatus.running;
+    showCustomSnackbar("بدء التحميل", "جاري تحميل ترنيمة: $title", Icons.downloading);
     try {
-      final savedDir = await getDownloadPath();
-      final dir = Directory(savedDir);
-      if (!dir.existsSync()) {
-        dir.createSync(recursive: true);
-      }
-
-      final fileName = "${sanitizeFileName(title)}.mp3";
-
-      taskId = await FlutterDownloader.enqueue(
-        url: url,
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
-        },
-        savedDir: savedDir,
-        fileName: fileName,
-        showNotification: true,
-        openFileFromNotification: true,
-        saveInPublicStorage: true,
-      );
-
-      if (taskId != null) {
-        downloadProcess.value = DownloadTaskStatus.running;
-        showCustomSnackbar(
-          "بدء التحميل",
-          "جاري تحميل ترنيمة: $title",
-          Icons.downloading,
-        );
-      } else {
-        downloadProcess.value = DownloadTaskStatus.failed;
-        showCustomSnackbar(
-          "خطأ",
-          "فشل في إضافة مهمة التحميل",
-          Icons.error_outline,
-        );
-      }
+      await _downloads.downloadHymn(toHymn(), storageService: OfflineStorageService());
+      downloadProcess.value = DownloadTaskStatus.complete;
+      showCustomSnackbar("تم التحميل", "تم تحميل ترنيمة: $title", Icons.check_circle_outline);
     } catch (e) {
-      if (kDebugMode) print("Download enqueue error: $e");
+      if (kDebugMode) print("Download error: $e");
       downloadProcess.value = DownloadTaskStatus.failed;
-      showCustomSnackbar(
-        "خطأ في التحميل",
-        "حدث خطأ أثناء بدء التحميل: $e",
-        Icons.error_outline,
-      );
+      showCustomSnackbar("خطأ في التحميل", "تعذر تحميل ترنيمة: $title", Icons.error_outline);
     }
   }
 }

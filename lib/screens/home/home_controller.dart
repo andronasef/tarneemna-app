@@ -1,22 +1,18 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
-import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
-import 'package:tarneemna/features/downloads/domain/entities/downloaded_hymn.dart';
 import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
 import '../../tarnemma.dart';
 import '../../widgets/snackbar.dart';
 
 class HomeController extends GetxController {
-  final RxInt recentSearchTick = 0.obs;
   final RxList<Tarnemma> traneem = <Tarnemma>[].obs;
   late final TextEditingController songText;
   final RxString songTextObs = "".obs;
   final RxBool loading = false.obs;
+  final RxInt recentSearchTick = 0.obs;
   Timer? _debounceTimer;
   final SearchHistoryService _searchHistoryService = SearchHistoryService();
 
@@ -46,13 +42,13 @@ class HomeController extends GetxController {
     if (queryText.length >= 2) {
       _debounceTimer = Timer(const Duration(milliseconds: 600), () {
         query(queryText);
+      });
+    }
+  }
+
   Future<void> clearRecentSearches() async {
     await _searchHistoryService.clearAll();
     recentSearchTick.value++;
-  }
-
-      });
-    }
   }
 
   Future<void> query(String searchQuery) async {
@@ -89,61 +85,6 @@ class HomeController extends GetxController {
       );
     } finally {
       loading.value = false;
-    }
-  }
-
-  void updateDownloadStatus(
-    String taskId,
-    DownloadTaskStatus status,
-    int progress,
-  ) {
-    for (final t in traneem) {
-      if (t.taskId == taskId) {
-        t.downloadProcess.value = status;
-        t.downloadProgress.value = progress;
-        if (status == DownloadTaskStatus.complete) {
-          _registerCompletedDownload(t);
-        }
-        break;
-      }
-    }
-  }
-
-  Future<void> _registerCompletedDownload(Tarnemma t) async {
-    try {
-      final savedDir = await Tarnemma.getDownloadPath();
-      final fileName = "${Tarnemma.sanitizeFileName(t.title)}.mp3";
-      final filePath = '$savedDir/$fileName';
-      final file = File(filePath);
-      final size = file.existsSync() ? file.lengthSync() : 0;
-
-      Duration? dur;
-      if (t.duration.isNotEmpty) {
-        final parts = t.duration.split(':').map((e) => int.tryParse(e) ?? 0).toList();
-        if (parts.length == 2) {
-          dur = Duration(minutes: parts[0], seconds: parts[1]);
-        } else if (parts.length == 3) {
-          dur = Duration(hours: parts[0], minutes: parts[1], seconds: parts[2]);
-        }
-      }
-
-      final hymn = DownloadedHymn(
-        id: t.id,
-        title: t.title,
-        singer: t.author,
-        album: null,
-        artworkUrl: t.thumbnail,
-        localFilePath: filePath,
-        fileSizeBytes: size,
-        downloadedAt: DateTime.now(),
-        lyrics: t.lyrics,
-        source: t.source,
-        duration: dur,
-      );
-      final storageService = OfflineStorageService();
-      await storageService.saveDownloadedHymn(hymn);
-    } catch (e) {
-      if (kDebugMode) print('Error registering completed download: $e');
     }
   }
 }

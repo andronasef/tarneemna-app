@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/features/downloads/presentation/providers/download_providers.dart';
 import 'package:tarneemna/features/discovery/presentation/widgets/discovery_header_section.dart';
 import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
@@ -20,11 +22,11 @@ class TraneemList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.loading.value) {
-        return const Center(
       // Observe recentSearchTick so changes trigger a rebuild
       final _ = controller.recentSearchTick.value;
 
+      if (controller.loading.value) {
+        return const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -206,7 +208,11 @@ class TraneemTile extends StatelessWidget {
               );
             } else {
               return IconButton(
-                onPressed: () => tarnemma.download(),
+                onPressed: () async {
+                  final container = ProviderScope.containerOf(context);
+                  await tarnemma.download();
+                  container.invalidate(downloadedHymnsListProvider); // refresh "الترانيم المحملة"
+                },
                 icon: const Icon(Icons.download),
                 tooltip: "تحميل",
               );

@@ -21,7 +21,8 @@ class DownloadedHymnsNotifier extends StateNotifier<List<DownloadedHymn>> {
   void refresh() {
     state = _storageService.getDownloadedHymns();
     _storageService.syncWithDiskAndDownloader().then((_) {
-      state = _storageService.getDownloadedHymns();
+      // The notifier is recreated by ref.invalidate after each download.
+      if (mounted) state = _storageService.getDownloadedHymns();
     });
   }
 

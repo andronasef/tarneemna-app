@@ -19,10 +19,12 @@ class OfflineStorageService {
   }
 
   Box get _safeBox {
-    if (_box == null || !_box!.isOpen) {
+    // Fall back to the box main() already opened, so ad-hoc instances work too.
+    final box = _box ?? (Hive.isBoxOpen(boxName) ? _box = Hive.box(boxName) : null);
+    if (box == null || !box.isOpen) {
       throw StateError('OfflineStorageService box not opened. Call init() first.');
     }
-    return _box!;
+    return box;
   }
 
   List<DownloadedHymn> getDownloadedHymns() {
@@ -138,49 +140,31 @@ class OfflineStorageService {
       if (kDebugMode) print('Error syncing with flutter_downloader: $e');
     }
 
-    // 2. Scan download directories for any .mp3 or .m4a files
+    // 2. Scan our own audio dir only. Never the public Download folder: anything
+    // registered here can be deleted from the storage screen.
     try {
-      final downloadDirs = <Directory>[];
-      if (Platform.isAndroid) {
-        final publicDownload = Directory('/storage/emulated/0/Download');
-        if (publicDownload.existsSync()) {
-          downloadDirs.add(publicDownload);
-        }
-      }
       final docDir = await getApplicationDocumentsDirectory();
       final appAudioDir = Directory('${docDir.path}/downloads/audio');
       if (appAudioDir.existsSync()) {
-        downloadDirs.add(appAudioDir);
-      }
-
-      for (final dir in downloadDirs) {
-        final list = dir.listSync();
-        for (final entity in list) {
-          if (entity is File && (entity.path.endsWith('.mp3') || entity.path.endsWith('.m4a'))) {
-            final path = entity.path;
-            final alreadyExists = getDownloadedHymns().any((h) => h.localFilePath == path);
-            if (!alreadyExists) {
-              final fileName = entity.uri.pathSegments.last;
-              final cleanTitle = fileName.replaceAll('.mp3', '').replaceAll('.m4a', '');
-              final hymnId = 'file_${path.hashCode.abs()}';
-              final stat = entity.statSync();
-              final downloadedHymn = DownloadedHymn(
-                id: hymnId,
-                title: cleanTitle,
-                singer: 'ترانيم محملة',
-                artworkUrl: null,
-                localFilePath: path,
-                fileSizeBytes: stat.size,
-                downloadedAt: stat.modified,
-                source: HymnSource.youtube,
-              );
-              await saveDownloadedHymn(downloadedHymn);
-            }
+        final known = getDownloadedHymns().map((h) => h.localFilePath).toSet();
+        for (final entity in appAudioDir.listSync()) {
+          if (entity is File && entity.path.endsWith('.mp3') && !known.contains(entity.path)) {
+            final fileName = entity.uri.pathSegments.last;
+            final stat = entity.statSync();
+            await saveDownloadedHymn(DownloadedHymn(
+              id: 'file_${entity.path.hashCode.abs()}',
+              title: fileName.replaceAll('.mp3', ''),
+              singer: 'ترانيم محملة',
+              localFilePath: entity.path,
+              fileSizeBytes: stat.size,
+              downloadedAt: stat.modified,
+              source: HymnSource.youtube,
+            ));
           }
         }
       }
     } catch (e) {
-      if (kDebugMode) print('Error scanning download dirs: $e');
+      if (kDebugMode) print('Error scanning download dir: $e');
     }
   }
 

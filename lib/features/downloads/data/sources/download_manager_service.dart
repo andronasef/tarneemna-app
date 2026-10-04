@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -9,12 +8,7 @@ import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 
 class DownloadManagerService {
-  final ValueNotifier<Map<String, double>> downloadProgress =
-      ValueNotifier<Map<String, double>>({});
-
-  bool isDownloading(String id) => downloadProgress.value.containsKey(id);
-
-  double? getProgress(String id) => downloadProgress.value[id];
+  final Set<String> _inFlight = {};
 
   Future<DownloadedHymn?> downloadHymn(
     Hymn hymn, {
@@ -24,12 +18,10 @@ class DownloadManagerService {
       return storageService.getDownloadedHymn(hymn.id);
     }
 
-    if (isDownloading(hymn.id)) {
-      return null;
-    }
+    if (!_inFlight.add(hymn.id)) return null;
 
-    _updateProgress(hymn.id, 0.05);
-
+    File? targetFile;
+    final client = http.Client();
     try {
       final docDir = await getApplicationDocumentsDirectory();
       final audioDir = Directory('${docDir.path}/downloads/audio');
@@ -37,9 +29,6 @@ class DownloadManagerService {
         await audioDir.create(recursive: true);
       }
 
-      final targetFile = File('${audioDir.path}/${hymn.id}.mp3');
-
-      // 1. Resolve Audio URL
       String? streamUrl = hymn.audioUrl;
       if (streamUrl == null || streamUrl.isEmpty) {
         if (hymn.source == HymnSource.taranimar) {
@@ -53,34 +42,18 @@ class DownloadManagerService {
         throw Exception('Could not resolve audio stream URL for download');
       }
 
-      _updateProgress(hymn.id, 0.15);
+      final response = await client.send(http.Request('GET', Uri.parse(streamUrl)));
+      if (response.statusCode != 200) {
+        throw Exception('HTTP ${response.statusCode} downloading ${hymn.id}');
+      }
 
-      // 2. Stream download to disk with progress tracking
-      final client = http.Client();
-      final request = http.Request('GET', Uri.parse(streamUrl));
-      final response = await client.send(request);
-
-      final totalBytes = response.contentLength ?? 0;
-      int receivedBytes = 0;
-
+      targetFile = File('${audioDir.path}/${hymn.id}.mp3');
       final sink = targetFile.openWrite();
-      await response.stream.listen(
-        (chunk) {
-          sink.add(chunk);
-          receivedBytes += chunk.length;
-          if (totalBytes > 0) {
-            final p = 0.15 + (receivedBytes / totalBytes) * 0.8;
-            _updateProgress(hymn.id, p.clamp(0.15, 0.95));
-          }
-        },
-        cancelOnError: true,
-      ).asFuture();
-
-      await sink.flush();
-      await sink.close();
-      client.close();
-
-      final fileSizeBytes = await targetFile.length();
+      try {
+        await response.stream.pipe(sink);
+      } finally {
+        await sink.close();
+      }
 
       final downloadedHymn = DownloadedHymn(
         id: hymn.id,
@@ -89,7 +62,7 @@ class DownloadManagerService {
         album: hymn.album,
         artworkUrl: hymn.artworkUrl,
         localFilePath: targetFile.path,
-        fileSizeBytes: fileSizeBytes,
+        fileSizeBytes: await targetFile.length(),
         downloadedAt: DateTime.now(),
         lyrics: hymn.lyrics,
         source: hymn.source,
@@ -97,24 +70,15 @@ class DownloadManagerService {
       );
 
       await storageService.saveDownloadedHymn(downloadedHymn);
-      _removeProgress(hymn.id);
       return downloadedHymn;
     } catch (e) {
       if (kDebugMode) print('Download error for ${hymn.title}: $e');
-      _removeProgress(hymn.id);
+      // Don't leave a partial file behind for the disk scan to pick up.
+      if (targetFile != null && await targetFile.exists()) await targetFile.delete();
       rethrow;
+    } finally {
+      client.close();
+      _inFlight.remove(hymn.id);
     }
-  }
-
-  void _updateProgress(String id, double progress) {
-    final current = Map<String, double>.from(downloadProgress.value);
-    current[id] = progress;
-    downloadProgress.value = current;
-  }
-
-  void _removeProgress(String id) {
-    final current = Map<String, double>.from(downloadProgress.value);
-    current.remove(id);
-    downloadProgress.value = current;
   }
 }
