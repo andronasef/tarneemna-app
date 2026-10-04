@@ -34,11 +34,6 @@ final singersListProvider = FutureProvider<List<Singer>>((ref) async {
   return repo.getSingers();
 });
 
-final albumsListProvider = FutureProvider<List<Album>>((ref) async {
-  final repo = ref.watch(taranimArabiaRepositoryProvider);
-  return repo.getAlbums();
-});
-
 /// Fetches random singers across the entire 24 pages of the website library
 final randomizedSingersProvider = FutureProvider<List<Singer>>((ref) async {
   final repo = ref.watch(taranimArabiaRepositoryProvider);

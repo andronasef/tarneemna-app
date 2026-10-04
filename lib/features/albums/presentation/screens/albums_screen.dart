@@ -2,6 +2,7 @@ import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/albums/presentation/screens/album_detail_screen.dart';
+import 'package:tarneemna/features/hymns/domain/entities/album.dart';
 import 'package:tarneemna/features/taranim_arabia/presentation/providers/taranim_arabia_providers.dart';
 
 class AlbumsScreen extends ConsumerStatefulWidget {
@@ -13,17 +14,60 @@ class AlbumsScreen extends ConsumerStatefulWidget {
 
 class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _query = '';
+
+  final List<Album> _albums = [];
+  int _page = 0;
+  bool _loading = false;
+  bool _hasMore = true;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final pos = _scrollController.position;
+      if (pos.pixels >= pos.maxScrollExtent - 400) _loadMore();
+    });
+    _loadMore();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMore() async {
+    if (_loading || !_hasMore) return;
+    setState(() {
+      _loading = true;
+      _error = false;
+    });
+    try {
+      final next = await ref.read(taranimArabiaRepositoryProvider).getAlbums(page: _page + 1);
+      if (!mounted) return;
+      final known = _albums.map((a) => a.id).toSet();
+      final fresh = next.where((a) => !known.contains(a.id)).toList();
+      setState(() {
+        _page++;
+        _albums.addAll(fresh);
+        _hasMore = fresh.isNotEmpty; // empty/repeated page = past the last page
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = true;
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final albumsAsync = ref.watch(albumsListProvider);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -59,31 +103,36 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
               ),
             ),
             Expanded(
-              child: albumsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 12),
-                      const Text('تعذر تحميل الألبومات', style: TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => ref.refresh(albumsListProvider),
-                        child: const Text('إعادة المحاولة'),
-                      ),
-                    ],
-                  ),
-                ),
-                data: (albums) {
-                  final filtered = albums.where((a) {
+              child: Builder(
+                builder: (context) {
+                  final filtered = _albums.where((a) {
                     if (_query.isEmpty) return true;
                     final q = _query.toLowerCase();
                     final inTitle = a.title.toLowerCase().contains(q);
                     final inSinger = a.singerName?.toLowerCase().contains(q) ?? false;
                     return inTitle || inSinger;
                   }).toList();
+
+                  if (_albums.isEmpty) {
+                    if (_error) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+                            const SizedBox(height: 12),
+                            const Text('تعذر تحميل الألبومات', style: TextStyle(color: Colors.grey)),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _loadMore,
+                              child: const Text('إعادة المحاولة'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
                   if (filtered.isEmpty) {
                     return const Center(
@@ -92,6 +141,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                   }
 
                   return GridView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -99,8 +149,15 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: filtered.length,
+                    itemCount: filtered.length + (_hasMore ? 1 : 0),
                     itemBuilder: (ctx, idx) {
+                      if (idx >= filtered.length) {
+                        return Center(
+                          child: _error
+                              ? IconButton(icon: const Icon(Icons.refresh), onPressed: _loadMore)
+                              : const CircularProgressIndicator(),
+                        );
+                      }
                       final album = filtered[idx];
                       return GestureDetector(
                         onTap: () {
