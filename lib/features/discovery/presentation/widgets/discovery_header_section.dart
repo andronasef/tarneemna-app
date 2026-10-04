@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/albums/presentation/screens/album_detail_screen.dart';
@@ -273,13 +275,17 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           },
         ),
 
-        // Trending Albums Carousel
+        // Browse Albums Carousel (Randomized)
         albumsAsync.when(
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
           data: (albums) {
             if (albums.isEmpty) return const SizedBox.shrink();
-            final topAlbums = albums.take(8).toList();
+            // Seed by current day of year so it stays stable during a session but changes daily,
+            // with shuffle for discovery
+            final random = Random(DateTime.now().day + DateTime.now().month * 100);
+            final shuffledAlbums = List.of(albums)..shuffle(random);
+            final displayedAlbums = shuffledAlbums.take(12).toList();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +296,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'أحدث ألبومات الترانيم',
+                        'تصفح الألبومات',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
@@ -310,9 +316,9 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: topAlbums.length,
+                    itemCount: displayedAlbums.length,
                     itemBuilder: (ctx, idx) {
-                      final album = topAlbums[idx];
+                      final album = displayedAlbums[idx];
                       final hasAlbumImage = album.imageUrl != null && album.imageUrl!.trim().isNotEmpty;
                       return GestureDetector(
                         onTap: () {
