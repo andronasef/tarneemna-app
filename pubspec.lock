@@ -9,22 +9,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.16"
-  android_path_provider:
-    dependency: "direct main"
-    description:
-      name: android_path_provider
-      sha256: e9fdc78e4df5ff93e3193c18ae100cf671b33e48feba3ade1d89d83e3eb8184e
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.2"
-  animations:
-    dependency: "direct main"
-    description:
-      name: animations
-      sha256: "5ec868ffa78851e6f3f32e9377b780c7ae2087a5523d8b5e6df59bd8287ac5dd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   ansicolor:
     dependency: transitive
     description:
@@ -161,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
-  cupertino_ui:
-    dependency: transitive
-    description:
-      name: cupertino_ui
-      sha256: e9dfe7fac704028f8928cbe4028a0be5e8a709498e8daf8247de99e99a32aef3
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   dio:
     dependency: transitive
     description:
@@ -286,14 +262,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  flutter_hooks:
-    dependency: "direct main"
-    description:
-      name: flutter_hooks
-      sha256: "7c8db779c2d1010aa7f9ea3fbefe8f86524fcb87b69e8b0af31e1a4b55422dec"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.20.3"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -357,14 +325,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.6.6"
-  go_router:
-    dependency: "direct main"
-    description:
-      name: go_router
-      sha256: f02fd7d2a4dc512fec615529824fdd217fecb3a3d3de68360293a551f21634b3
-      url: "https://pub.dev"
-    source: hosted
-    version: "14.8.1"
   google_fonts:
     dependency: "direct main"
     description:
@@ -557,14 +517,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
-  material_ui:
-    dependency: transitive
-    description:
-      name: material_ui
-      sha256: fbfb53cab6c4629438feeade5f3d305f72944bc9d9f25786b19106d32b80ec45
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   meta:
     dependency: transitive
     description:
@@ -581,6 +533,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  package_info_plus:
+    dependency: "direct main"
+    description:
+      name: package_info_plus
+      sha256: "468c26b4254ab01979fa5e4a98cb343ea3631b9acee6f21028997419a80e1a20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.1"
+  package_info_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: package_info_plus_platform_interface
+      sha256: "202a487f08836a592a6bd4f901ac69b3a8f146af552bbd14407b6b41e1c3f086"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   path:
     dependency: transitive
     description:

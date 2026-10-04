@@ -15,7 +15,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   get: ^4.6.6
   flutter_riverpod: ^2.5.1
-  go_router: ^14.2.0
   hive_flutter: ^1.1.0
   html: ^0.15.4
   http: ^1.2.1
@@ -31,15 +30,13 @@ dependencies:
   firebase_analytics: ^10.7.4
   firebase_core: ^2.24.2
   google_fonts: ^6.2.1
-  android_path_provider: ^0.3.2
   flutter_fadein: ^2.0.0
   internet_connection_checker: ^1.0.0+1
-  flutter_hooks: ^0.20.3
   flutter_markdown: ^0.6.10+3
   share_plus: ^7.2.1
   flutter_native_splash: ^2.3.7
   youtube_explode_webview: ^0.0.2
-  animations: ^3.0.0
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:
@@ -52,4 +49,5 @@ flutter:
 
   assets:
     - assets/
+    - assets/md/
     - massets/
