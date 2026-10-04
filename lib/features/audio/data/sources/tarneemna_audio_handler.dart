@@ -1,14 +1,17 @@
 import 'package:tarneemna/features/taranim_arabia/data/sources/taranim_arabia_remote_data_source.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:just_audio/just_audio.dart';
 import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/library/data/sources/personal_library_service.dart';
 import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
+import 'package:tarneemna/widgets/snackbar.dart';
 
 class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
@@ -16,6 +19,9 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   final PersonalLibraryService? _personalLibraryService;
   Future<void> Function(MediaItem? currentItem)? onAutoPlay;
   int _currentIndex = -1;
+  // Bumped on every track load so a slow, superseded load can't start playing.
+  int _loadGen = 0;
+  final _rng = Random();
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _playbackEventSubscription;
   StreamSubscription? _durationSubscription;
@@ -120,6 +126,8 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
         'lyrics': hymn.lyrics,
         'singerId': hymn.singerId,
         'albumId': hymn.albumId,
+        'chordsUrl': hymn.chordsUrl,
+        'notesUrl': hymn.notesUrl,
       },
     );
   }
@@ -142,6 +150,8 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
       lyrics: extras['lyrics'] as String?,
       singerId: extras['singerId'] as String?,
       albumId: extras['albumId'] as String?,
+      chordsUrl: extras['chordsUrl'] as String?,
+      notesUrl: extras['notesUrl'] as String?,
       source: source,
     );
   }
@@ -181,63 +191,24 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     queue.add(list);
   }
 
-  Future<void> addToQueue(Hymn hymn) async {
-    await addQueueItem(hymnToMediaItem(hymn));
-  }
-
-  Future<void> playNext(Hymn hymn) async {
-    final item = hymnToMediaItem(hymn);
-    final list = List<MediaItem>.from(queue.value);
-    final insertIndex = (_currentIndex >= 0 && _currentIndex < list.length)
-        ? _currentIndex + 1
-        : list.length;
-    list.insert(insertIndex, item);
-    queue.add(list);
-  }
-
   @override
   Future<void> removeQueueItemAt(int index) async {
     final list = List<MediaItem>.from(queue.value);
     if (index >= 0 && index < list.length) {
       list.removeAt(index);
+      // Publish the new queue first: skipToQueueItem reads queue.value.
+      queue.add(list);
       if (_currentIndex > index) {
         _currentIndex--;
       } else if (_currentIndex == index) {
         if (list.isEmpty) {
           await stop();
-          _currentIndex = -1;
-          mediaItem.add(null);
         } else {
-          final nextIdx = _currentIndex >= list.length ? list.length - 1 : _currentIndex;
-          _currentIndex = nextIdx;
-          await skipToQueueItem(_currentIndex);
+          await skipToQueueItem(min(_currentIndex, list.length - 1));
         }
       }
-      queue.add(list);
     }
   }
-
-  Future<void> removeFromQueue(int index) => removeQueueItemAt(index);
-
-  Future<void> moveQueueItem(int oldIndex, int newIndex) async {
-    final list = List<MediaItem>.from(queue.value);
-    if (oldIndex < 0 || oldIndex >= list.length || newIndex < 0 || newIndex >= list.length) return;
-
-    final item = list.removeAt(oldIndex);
-    list.insert(newIndex, item);
-
-    if (_currentIndex == oldIndex) {
-      _currentIndex = newIndex;
-    } else if (oldIndex < _currentIndex && newIndex >= _currentIndex) {
-      _currentIndex--;
-    } else if (oldIndex > _currentIndex && newIndex <= _currentIndex) {
-      _currentIndex++;
-    }
-
-    queue.add(list);
-  }
-
-  Future<void> reorderQueue(int oldIndex, int newIndex) => moveQueueItem(oldIndex, newIndex);
 
   @override
   Future<void> skipToQueueItem(int index) async {
@@ -245,6 +216,7 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     if (index < 0 || index >= list.length) return;
 
     _currentIndex = index;
+    final gen = ++_loadGen;
     final item = list[index];
     mediaItem.add(item);
 
@@ -259,7 +231,7 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
         try {
           await _player.stop();
           await _player.setFilePath(downloaded.localFilePath);
-          await _player.play();
+          if (gen == _loadGen) await _player.play();
           return;
         } catch (e) {
           if (kDebugMode) print('Local file playback error: $e');
@@ -276,7 +248,7 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
       try {
         await _player.stop();
         await _player.setFilePath(audioUrl);
-        await _player.play();
+        if (gen == _loadGen) await _player.play();
         return;
       } catch (e) {
         if (kDebugMode) print('File path playback error: $e');
@@ -288,26 +260,38 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
         audioUrl = 'https://taranimarabia.org/music/${item.id}.mp3';
       } else {
         audioUrl = await YouTubeAudioResolver.getAudioUrl(item.id);
+        if (gen != _loadGen) return;
       }
     }
 
     if (audioUrl == null || audioUrl.isEmpty) {
       if (kDebugMode) print('Could not resolve audio URL for track ${item.title}');
+      _reportPlaybackError(item);
       return;
     }
 
     try {
       await _player.stop();
       await _player.setUrl(audioUrl);
-      await _player.play();
+      if (gen == _loadGen) await _player.play();
     } catch (e) {
       if (kDebugMode) print('Player error playing track: $e');
+      if (gen == _loadGen) _reportPlaybackError(item);
     }
+  }
+
+  void _reportPlaybackError(MediaItem item) {
+    showCustomSnackbar('تعذر التشغيل', 'لم نتمكن من تشغيل «${item.title}»', Icons.error_outline);
   }
 
   @override
   Future<void> skipToNext() async {
-    if (_currentIndex + 1 < queue.value.length) {
+    final length = queue.value.length;
+    if (playbackState.value.shuffleMode != AudioServiceShuffleMode.none && length > 1) {
+      var next = _rng.nextInt(_currentIndex < 0 ? length : length - 1);
+      if (_currentIndex >= 0 && next >= _currentIndex) next++; // never repeat the current track
+      await skipToQueueItem(next);
+    } else if (_currentIndex + 1 < length) {
       await skipToQueueItem(_currentIndex + 1);
     } else if (playbackState.value.repeatMode == AudioServiceRepeatMode.all && queue.value.isNotEmpty) {
       await skipToQueueItem(0);
@@ -359,6 +343,7 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> stop() async {
+    _loadGen++; // cancel any in-flight track load
     await _player.stop();
     _currentIndex = -1;
     mediaItem.add(null);
@@ -379,20 +364,17 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    final loopMode = switch (repeatMode) {
-      AudioServiceRepeatMode.none => LoopMode.off,
-      AudioServiceRepeatMode.one => LoopMode.one,
-      AudioServiceRepeatMode.all => LoopMode.all,
-      AudioServiceRepeatMode.group => LoopMode.all,
-    };
-    await _player.setLoopMode(loopMode);
+    // The player holds one track at a time, so LoopMode.all would just loop it.
+    // Queue-level repeat is handled in skipToNext.
+    await _player.setLoopMode(
+      repeatMode == AudioServiceRepeatMode.one ? LoopMode.one : LoopMode.off,
+    );
     playbackState.add(playbackState.value.copyWith(repeatMode: repeatMode));
   }
 
   @override
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    final enabled = shuffleMode != AudioServiceShuffleMode.none;
-    await _player.setShuffleModeEnabled(enabled);
+    // Shuffle is applied in skipToNext; the player only ever holds one track.
     playbackState.add(playbackState.value.copyWith(shuffleMode: shuffleMode));
   }
 
@@ -401,12 +383,6 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     if (name == 'setSpeed') {
       final speed = (extras?['speed'] as num?)?.toDouble() ?? 1.0;
       await setSpeed(speed);
-      return;
-    }
-    if (name == 'moveQueueItem') {
-      final oldIndex = extras?['oldIndex'] as int? ?? 0;
-      final newIndex = extras?['newIndex'] as int? ?? 0;
-      await moveQueueItem(oldIndex, newIndex);
       return;
     }
     return super.customAction(name, extras);

@@ -17,6 +17,8 @@ void main() {
         lyrics: 'كلمات الترنيمة',
         singerId: '10',
         albumId: '20',
+        chordsUrl: 'https://taranimarabia.org/Files/Chords/42.pdf',
+        notesUrl: 'https://taranimarabia.org/Files/MusicNotes/42.pdf',
         source: HymnSource.taranimar,
       );
 
@@ -34,9 +36,11 @@ void main() {
       expect(reconstructed.album, hymn.album);
       expect(reconstructed.lyrics, hymn.lyrics);
       expect(reconstructed.source, HymnSource.taranimar);
+      expect(reconstructed.chordsUrl, hymn.chordsUrl);
+      expect(reconstructed.notesUrl, hymn.notesUrl);
     });
 
-    test('Queue operations add, remove, and reorder items properly', () async {
+    test('Queue operations add and remove items properly', () async {
       final handler = TarneemnaAudioHandler();
 
       const item1 = MediaItem(id: '1', title: 'Track 1');
@@ -49,17 +53,11 @@ void main() {
       expect(handler.queue.value[1].id, '2');
       expect(handler.queue.value[2].id, '3');
 
-      // Move item 0 to index 2
-      await handler.moveQueueItem(0, 2);
-      expect(handler.queue.value[0].id, '2');
-      expect(handler.queue.value[1].id, '3');
-      expect(handler.queue.value[2].id, '1');
-
       // Remove item at index 1
       await handler.removeQueueItemAt(1);
       expect(handler.queue.value.length, 2);
-      expect(handler.queue.value[0].id, '2');
-      expect(handler.queue.value[1].id, '1');
+      expect(handler.queue.value[0].id, '1');
+      expect(handler.queue.value[1].id, '3');
     });
   });
 }

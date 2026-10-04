@@ -18,10 +18,10 @@ class PersonalLibraryService {
     _historyBox = await Hive.openBox(historyBoxName);
   }
 
-  // ValueListenable for UI reactivity
-  ValueListenable<Box> get favoritesListenable => _favoritesBox.listenable();
-  ValueListenable<Box> get playlistsListenable => _playlistsBox.listenable();
-  ValueListenable<Box> get historyListenable => _historyBox.listenable();
+  // Cached so removeListener gets the same instance addListener did.
+  late final ValueListenable<Box> favoritesListenable = _favoritesBox.listenable();
+  late final ValueListenable<Box> playlistsListenable = _playlistsBox.listenable();
+  late final ValueListenable<Box> historyListenable = _historyBox.listenable();
 
   // --- FAVORITES ---
   bool isFavorite(String hymnId) {

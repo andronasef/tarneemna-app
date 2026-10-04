@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:tarneemna/features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
 
-enum SleepTimerMode { none, minutes, endOfTrack }
+enum SleepTimerMode { none, minutes }
 
 class SleepTimerState {
   final SleepTimerMode mode;
@@ -35,7 +34,6 @@ class SleepTimerState {
 class SleepTimerNotifier extends StateNotifier<SleepTimerState> {
   final TarneemnaAudioHandler _audioHandler;
   Timer? _ticker;
-  StreamSubscription? _trackCompletionSub;
 
   SleepTimerNotifier(this._audioHandler) : super(const SleepTimerState());
 
@@ -60,17 +58,6 @@ class SleepTimerNotifier extends StateNotifier<SleepTimerState> {
     });
   }
 
-  void setEndOfTrack() {
-    cancelTimer();
-    state = const SleepTimerState(mode: SleepTimerMode.endOfTrack);
-
-    _trackCompletionSub = _audioHandler.player.playerStateStream.listen((playerState) {
-      if (playerState.processingState == ProcessingState.completed) {
-        _expireTimer();
-      }
-    });
-  }
-
   Future<void> _expireTimer() async {
     cancelTimer();
     try {
@@ -90,15 +77,12 @@ class SleepTimerNotifier extends StateNotifier<SleepTimerState> {
   void cancelTimer() {
     _ticker?.cancel();
     _ticker = null;
-    _trackCompletionSub?.cancel();
-    _trackCompletionSub = null;
     state = const SleepTimerState();
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _trackCompletionSub?.cancel();
     super.dispose();
   }
 }

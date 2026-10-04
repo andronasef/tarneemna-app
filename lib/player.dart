@@ -79,24 +79,4 @@ class Player {
     isBuffering.value = false;
     audioHandler.stop();
   }
-
-  static void seekTo(Duration position) {
-    audioHandler.seek(position);
-  }
-
-  static void back5() {
-    seekTo(player.position - const Duration(seconds: 5));
-  }
-
-  static void forward5() {
-    seekTo(player.position + const Duration(seconds: 5));
-  }
-
-  static void seekForward() {
-    seekTo(player.position + const Duration(seconds: 10));
-  }
-
-  static void seekBackward() {
-    seekTo(player.position - const Duration(seconds: 10));
-  }
 }

@@ -1,16 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tarneemna/features/audio/domain/services/share_service.dart';
 
 void main() {
-  group('Lyrics & ShareService Tests', () {
-    test('formatTimestamp correctly formats various durations', () {
-      expect(ShareService.formatTimestamp(Duration.zero), '00:00');
-      expect(ShareService.formatTimestamp(const Duration(seconds: 45)), '00:45');
-      expect(ShareService.formatTimestamp(const Duration(minutes: 1, seconds: 23)), '01:23');
-      expect(ShareService.formatTimestamp(const Duration(minutes: 12, seconds: 5)), '12:05');
-      expect(ShareService.formatTimestamp(const Duration(minutes: 65, seconds: 30)), '05:30');
-    });
-
+  group('Lyrics Tests', () {
     test('Lyrics line filtering preserves spiritual text while ignoring labels', () {
       const rawLyrics = '''
 القرار

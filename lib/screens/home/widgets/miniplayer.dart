@@ -1,4 +1,3 @@
-import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/features/audio/presentation/widgets/full_player_view.dart';
@@ -59,6 +58,16 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     });
   }
 
+  void _openFullPlayer() {
+    Get.to(
+      () => FullPlayerView(
+        onCollapse: () => Get.back(),
+      ),
+      transition: Transition.downToUp,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
   Future<void> _handleExit() async {
     if (_isExiting) return;
     _isExiting = true;
@@ -108,155 +117,148 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             ),
           );
         },
-        child: GestureDetector(
-          onVerticalDragEnd: (details) {
-            if (details.primaryVelocity != null && details.primaryVelocity! > 250) {
-              _handleExit();
-            }
-          },
-          child: OpenContainer(
-            closedElevation: 8,
-            closedShape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
               ),
-            ),
-            closedColor: theme.cardColor,
-            openColor: theme.scaffoldBackgroundColor,
-            middleColor: theme.cardColor,
-            transitionType: ContainerTransitionType.fadeThrough,
-            transitionDuration: const Duration(milliseconds: 350),
-            useRootNavigator: true,
-            tappable: false,
-            openBuilder: (context, action) => FullPlayerView(
-              onCollapse: () => Navigator.of(context).pop(),
-            ),
-            closedBuilder: (context, openContainer) {
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: openContainer,
-                  child: Container(
-                    height: 72,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: theme.dividerColor.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Obx(
-                      () {
-                        final isPlaying = Player.isPlaying.value;
-                        final isBuffering = Player.isBuffering.value;
-                        final hymn = Player.currentHymn;
-                        final singerName = hymn?.singer;
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Container(
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Obx(
+                () {
+                  final isPlaying = Player.isPlaying.value;
+                  final isBuffering = Player.isBuffering.value;
+                  final hymn = Player.currentHymn;
+                  final singerName = hymn?.singer;
 
-                        return Directionality(
-                          textDirection: TextDirection.rtl,
-                          child: Row(
-                            children: [
-                              // 1. Artwork (RTL start = right side)
-                              if (hymn?.artworkUrl != null)
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  margin: const EdgeInsetsDirectional.only(end: 12),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Image.network(
-                                    hymn!.artworkUrl!,
-                                    fit: BoxFit.cover,
-                                    gaplessPlayback: true,
-                                    errorBuilder: (_, __, ___) => Image.asset(
-                                      'assets/icon.png',
+                  return Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Row(
+                      children: [
+                        // Clickable area for Artwork + Title/Singer
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _openFullPlayer,
+                            child: Row(
+                              children: [
+                                // 1. Artwork (RTL start = right side)
+                                if (hymn?.artworkUrl != null)
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    margin: const EdgeInsetsDirectional.only(end: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: Image.network(
+                                      hymn!.artworkUrl!,
                                       fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                )
-                              else
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  margin: const EdgeInsetsDirectional.only(end: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[800],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(Icons.music_note, color: Colors.white70),
-                                ),
-
-                              // 2. Title & Singer in center
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      Player.currentSongTitle.value,
-                                      textAlign: TextAlign.start,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
+                                      gaplessPlayback: true,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        'assets/icon.png',
+                                        fit: BoxFit.cover,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    if (singerName != null && singerName.isNotEmpty)
+                                  )
+                                else
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    margin: const EdgeInsetsDirectional.only(end: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[800],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.music_note, color: Colors.white70),
+                                  ),
+
+                                // 2. Title & Singer in center
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        singerName,
+                                        Player.currentSongTitle.value,
                                         textAlign: TextAlign.start,
                                         style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                  ],
-                                ),
-                              ),
-
-                              // 3. Play/Pause & Close buttons (RTL end = left side)
-                              if (isBuffering)
-                                const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              else
-                                IconButton(
-                                  icon: Icon(
-                                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                    size: 30,
+                                      if (singerName != null && singerName.isNotEmpty)
+                                        Text(
+                                          singerName,
+                                          textAlign: TextAlign.start,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                    ],
                                   ),
-                                  onPressed: () {
-                                    if (isPlaying) {
-                                      Player.pause();
-                                    } else {
-                                      Player.play();
-                                    }
-                                  },
                                 ),
-                              IconButton(
-                                icon: const Icon(Icons.close_rounded, size: 22),
-                                onPressed: _handleExit,
-                                tooltip: "إغلاق",
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        );
-                      },
+                        ),
+
+                        // 3. Expand / Play / Close buttons (RTL end = left side)
+                        IconButton(
+                          icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 28),
+                          tooltip: "تكبير المشغل",
+                          onPressed: _openFullPlayer,
+                        ),
+                        if (isBuffering)
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          IconButton(
+                            icon: Icon(
+                              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              if (isPlaying) {
+                                Player.pause();
+                              } else {
+                                Player.play();
+                              }
+                            },
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 22),
+                          onPressed: _handleExit,
+                          tooltip: "إغلاق",
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
         ),
       );

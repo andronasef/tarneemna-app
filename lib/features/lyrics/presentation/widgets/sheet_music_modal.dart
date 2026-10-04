@@ -50,12 +50,22 @@ class SheetMusicModal extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'النوتة الموسيقية والكوردات',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'النوتة الموسيقية والكوردات',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: 'إغلاق',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               if (!hasChords && !hasNotes)
                 Padding(
                   padding: const EdgeInsets.all(24),
@@ -78,7 +88,12 @@ class SheetMusicModal extends StatelessWidget {
                       child: Icon(Icons.music_note, color: Colors.white),
                     ),
                     title: const Text('عرض النوتة الموسيقية (Music Sheet)'),
-                    subtitle: const Text('صورة النوتة الموسيقية الأصلية'),
+                    subtitle: Text(
+                      notesUrl,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     trailing: const Icon(Icons.open_in_new),
                     onTap: () => _openUrl(context, notesUrl),
                   ),
@@ -86,15 +101,19 @@ class SheetMusicModal extends StatelessWidget {
                   ListTile(
                     leading: const CircleAvatar(
                       backgroundColor: Colors.amber,
-                      child: Icon(Icons.piano, color: Colors.black),
+                      child: Icon(Icons.queue_music, color: Colors.black),
                     ),
-                    title: const Text('عرض الكوردات (Chords PDF)'),
-                    subtitle: const Text('كوردات الجيتار والأورج بصيغة PDF'),
+                    title: const Text('عرض الكوردات الموسيقية (Chords)'),
+                    subtitle: Text(
+                      chordsUrl,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     trailing: const Icon(Icons.open_in_new),
                     onTap: () => _openUrl(context, chordsUrl),
                   ),
               ],
-              const SizedBox(height: 12),
             ],
           ),
         ),

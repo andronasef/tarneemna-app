@@ -11,6 +11,7 @@ import 'package:tarneemna/features/library/presentation/providers/library_provid
 import 'package:tarneemna/features/lyrics/presentation/widgets/lyrics_bottom_sheet.dart';
 import 'package:tarneemna/features/lyrics/presentation/widgets/quote_card_dialog.dart';
 import 'package:tarneemna/features/lyrics/presentation/widgets/sheet_music_modal.dart';
+import 'package:tarneemna/features/taranim_arabia/presentation/providers/taranim_arabia_providers.dart';
 
 String _formatDuration(Duration duration) {
   final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -44,7 +45,9 @@ class FullPlayerView extends ConsumerWidget {
     final isDownloaded = ref.watch(isHymnDownloadedProvider(currentItem.id));
     final downloadManager = ref.watch(downloadManagerServiceProvider);
     final storageService = ref.watch(offlineStorageServiceProvider);
-    final currentHymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
+    final playingHymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
+    // Lyrics/chords/notes aren't in search results; use the fetched details once ready.
+    final currentHymn = ref.watch(hymnDetailsProvider(playingHymn)).value ?? playingHymn;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -388,7 +391,7 @@ class FullPlayerView extends ConsumerWidget {
   }
 
   void _showSleepTimerSheet(BuildContext context, WidgetRef ref) {
-    final timerState = ref.watch(sleepTimerNotifierProvider);
+    final timerState = ref.read(sleepTimerNotifierProvider);
     final timerNotifier = ref.read(sleepTimerNotifierProvider.notifier);
 
     showModalBottomSheet(
@@ -431,7 +434,7 @@ class FullPlayerView extends ConsumerWidget {
   }
 
   void _showAbRepeatDialog(BuildContext context, WidgetRef ref, Duration currentPos) {
-    final abState = ref.watch(abRepeatNotifierProvider);
+    final abState = ref.read(abRepeatNotifierProvider);
     final abNotifier = ref.read(abRepeatNotifierProvider.notifier);
 
     showDialog(
@@ -475,7 +478,7 @@ class FullPlayerView extends ConsumerWidget {
   }
 
   void _showAddToPlaylistDialog(BuildContext context, WidgetRef ref, Hymn currentHymn) {
-    final playlists = ref.watch(playlistsListProvider);
+    final playlists = ref.read(playlistsListProvider);
 
     showDialog(
       context: context,
@@ -512,17 +515,28 @@ class FullPlayerView extends ConsumerWidget {
   }
 }
 
-class _SeekBar extends ConsumerWidget {
+class _SeekBar extends ConsumerStatefulWidget {
   final TarneemnaAudioHandler audioHandler;
   final Duration totalDuration;
 
   const _SeekBar({required this.audioHandler, required this.totalDuration});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentPosition = ref.watch(audioPositionStreamProvider).value ?? Duration.zero;
+  ConsumerState<_SeekBar> createState() => _SeekBarState();
+}
+
+class _SeekBarState extends ConsumerState<_SeekBar> {
+  // While dragging, show the thumb position and seek once on release.
+  double? _dragSec;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalDuration = widget.totalDuration;
+    final playerPosition = ref.watch(audioPositionStreamProvider).value ?? Duration.zero;
     final maxSec = totalDuration.inSeconds.toDouble();
-    final currentSec = currentPosition.inSeconds.toDouble().clamp(0.0, maxSec > 0 ? maxSec : 1.0);
+    final currentSec =
+        (_dragSec ?? playerPosition.inSeconds.toDouble()).clamp(0.0, maxSec > 0 ? maxSec : 1.0);
+    final currentPosition = Duration(seconds: currentSec.toInt());
 
     return Column(
       children: [
@@ -536,8 +550,10 @@ class _SeekBar extends ConsumerWidget {
             value: currentSec,
             min: 0.0,
             max: maxSec > 0 ? maxSec : 1.0,
-            onChanged: (val) {
-              audioHandler.seek(Duration(seconds: val.toInt()));
+            onChanged: (val) => setState(() => _dragSec = val),
+            onChangeEnd: (val) {
+              widget.audioHandler.seek(Duration(seconds: val.toInt()));
+              setState(() => _dragSec = null);
             },
           ),
         ),
