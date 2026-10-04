@@ -67,6 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.miniCenterFloat,
           appBar: AppBar(
             actions: [
               IconButton(
@@ -90,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Stack(
                     children: [
                       TraneemList(controller: controller),
-                      Positioned(
+                      const Positioned(
                         bottom: 0,
                         right: 0,
                         left: 0,

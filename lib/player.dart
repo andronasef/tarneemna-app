@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
+import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 
 import 'tarnemma.dart';
 import 'widgets/snackbar.dart';
@@ -12,6 +14,7 @@ class Player {
   static final RxString currentSongId = "".obs;
   static final RxBool isPlaying = false.obs;
   static final RxBool isBuffering = false.obs;
+  static Hymn? currentHymn;
   static bool _initialized = false;
 
   static void init() {
@@ -46,11 +49,10 @@ class Player {
     );
   }
 
-  static Future<void> playTarnemma(Tarnemma song) async {
+  static Future<void> playHymn(Hymn hymn) async {
     init();
 
-    // Toggle play/pause if tapping the current song
-    if (currentSongId.value == song.id && player.audioSource != null) {
+    if (currentSongId.value == hymn.id && player.audioSource != null) {
       if (isPlaying.value) {
         pause();
       } else {
@@ -59,12 +61,21 @@ class Player {
       return;
     }
 
-    currentSongTitle.value = song.title;
-    currentSongId.value = song.id;
+    currentSongTitle.value = hymn.title;
+    currentSongId.value = hymn.id;
+    currentHymn = hymn;
     isBuffering.value = true;
     isPlaying.value = false;
 
-    final url = await song.getAudioUrl();
+    String? url = hymn.audioUrl;
+    if (url == null || url.isEmpty) {
+      if (hymn.source == HymnSource.taranimar) {
+        url = 'https://taranimarabia.org/music/${hymn.id}.mp3';
+      } else {
+        url = await YouTubeAudioResolver.getAudioUrl(hymn.id);
+      }
+    }
+
     if (url == null || url.isEmpty) {
       isBuffering.value = false;
       showCustomSnackbar(
@@ -89,6 +100,10 @@ class Player {
         Icons.error_outline,
       );
     }
+  }
+
+  static Future<void> playTarnemma(Tarnemma song) async {
+    await playHymn(song.toHymn());
   }
 
   static void play() {

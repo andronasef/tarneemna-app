@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -8,6 +7,11 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:tarneemna/features/hymns/data/repositories/hybrid_hymns_repository_impl.dart';
+import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
+import 'package:tarneemna/features/taranim_arabia/data/repositories/taranim_arabia_repository_impl.dart';
+import 'package:tarneemna/features/taranim_arabia/data/sources/taranim_arabia_remote_data_source.dart';
+import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:youtube_explode_webview/youtube_explode_webview.dart';
 
@@ -41,6 +45,8 @@ class Tarnemma {
   String? downloadUrl;
   final String thumbnail;
   String? taskId;
+  final HymnSource source;
+  final String? lyrics;
 
   final Rx<DownloadTaskStatus> downloadProcess =
       DownloadTaskStatus.undefined.obs;
@@ -55,12 +61,59 @@ class Tarnemma {
     this.downloadUrl,
     required this.thumbnail,
     this.taskId,
+    this.source = HymnSource.youtube,
+    this.lyrics,
   });
 
+  Hymn toHymn() {
+    return Hymn(
+      id: id,
+      title: title,
+      singer: author,
+      artworkUrl: thumbnail,
+      audioUrl: downloadUrl,
+      lyrics: lyrics,
+      source: source,
+    );
+  }
+
+  factory Tarnemma.fromHymn(Hymn hymn) {
+    return Tarnemma(
+      id: hymn.id,
+      title: hymn.title,
+      author: hymn.singer ?? (hymn.source == HymnSource.taranimar ? 'ترانيم عربية' : 'غير معروف'),
+      thumbnail: hymn.artworkUrl ?? 'https://taranimarabia.org/img/logo.png',
+      duration: hymn.duration != null
+          ? hymn.duration.toString().split('.').first
+          : '03:30',
+      downloadUrl: hymn.audioUrl,
+      source: hymn.source,
+      lyrics: hymn.lyrics,
+    );
+  }
+
+  /// Performs hybrid search querying both Taranim Arabia and YouTube Explode
   static Future<List<Tarnemma>> search(String query) async {
     final List<Tarnemma> list = [];
     if (query.trim().isEmpty) return list;
 
+    try {
+      final hybridRepo = HybridHymnsRepositoryImpl(
+        taranimArabiaRepo: TaranimArabiaRepositoryImpl(
+          remoteDataSource: TaranimArabiaRemoteDataSource(),
+        ),
+      );
+
+      final hymns = await hybridRepo.searchHymns(query);
+      return hymns.map((h) => Tarnemma.fromHymn(h)).toList();
+    } catch (e) {
+      if (kDebugMode) print("Hybrid search error, falling back to YouTube: $e");
+      return _searchYouTubeOnly(query);
+    }
+  }
+
+  static Future<List<Tarnemma>> _searchYouTubeOnly(String query) async {
+    final List<Tarnemma> list = [];
     try {
       if (kDebugMode) print("Querying YouTube for: $query");
       final searchList = await yt.search.search(query);
@@ -75,6 +128,7 @@ class Tarnemma {
             thumbnail: video.thumbnails.standardResUrl.isNotEmpty
                 ? video.thumbnails.standardResUrl
                 : video.thumbnails.highResUrl,
+            source: HymnSource.youtube,
           );
           list.add(song);
         } catch (e) {
@@ -131,95 +185,8 @@ class Tarnemma {
     await Player.playTarnemma(this);
   }
 
-  /// Resolves the stream using Innertube VISIONOS client (same method used by pytubefix).
-  /// This yields playable URLs with no 403 or 1MB stream throttling.
   static Future<String?> resolveVisionOsAudio(String videoId) async {
-    final client = HttpClient();
-    try {
-      // 1. Fetch visitorData from WEB client
-      final webPayload = jsonEncode({
-        'context': {
-          'client': {
-            'clientName': 'WEB',
-            'clientVersion': '2.20240105.01.00',
-            'hl': 'en',
-            'gl': 'US',
-          }
-        },
-        'videoId': videoId,
-      });
-
-      final req1 = await client.postUrl(
-        Uri.parse('https://www.youtube.com/youtubei/v1/player?prettyPrint=false'),
-      );
-      req1.headers.set('Content-Type', 'application/json');
-      req1.headers.set('User-Agent', 'Mozilla/5.0');
-      req1.write(webPayload);
-      final resp1 = await req1.close();
-      final body1 = await resp1.transform(utf8.decoder).join();
-      final data1 = jsonDecode(body1) as Map<String, dynamic>;
-      final visitorData = data1['responseContext']?['visitorData'] as String?;
-
-      // 2. Query player with VISIONOS client
-      final visionPayload = jsonEncode({
-        'context': {
-          'client': {
-            'clientName': 'VISIONOS',
-            'clientVersion': '1.02',
-            'deviceMake': 'Apple',
-            'platform': 'MOBILE',
-            'osName': 'visionOS',
-            'osVersion': '26.5.23O471',
-            'deviceModel': 'RealityDevice17,1',
-            'hl': 'en',
-            'timeZone': 'UTC',
-            'utcOffsetMinutes': 0,
-            if (visitorData != null) 'visitorData': visitorData,
-          }
-        },
-        'videoId': videoId,
-      });
-
-      final req2 = await client.postUrl(
-        Uri.parse(
-          'https://www.youtube.com/youtubei/v1/player?key=AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc&prettyPrint=false',
-        ),
-      );
-      req2.headers.set('Content-Type', 'application/json');
-      req2.headers.set(
-        'User-Agent',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
-      );
-      req2.headers.set('X-Youtube-Client-Name', '101');
-      req2.write(visionPayload);
-      final resp2 = await req2.close();
-      final body2 = await resp2.transform(utf8.decoder).join();
-      final data2 = jsonDecode(body2) as Map<String, dynamic>;
-
-      final streamingData = data2['streamingData'] as Map<String, dynamic>?;
-      final formats =
-          (streamingData?['adaptiveFormats'] as List<dynamic>?) ?? [];
-
-      // Prefer itag 140 (AAC 128kbps m4a)
-      for (final f in formats) {
-        if (f['itag'] == 140 && f['url'] != null) {
-          return f['url'] as String;
-        }
-      }
-
-      // Fallback to any audio stream
-      for (final f in formats) {
-        final mime = (f['mimeType'] as String? ?? '');
-        if (mime.contains('audio') && f['url'] != null) {
-          return f['url'] as String;
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) print("Error in resolveVisionOsAudio: $e");
-    } finally {
-      client.close();
-    }
-    return null;
+    return YouTubeAudioResolver.resolveVisionOsAudio(videoId);
   }
 
   Future<String?> getAudioUrl() async {
@@ -227,46 +194,20 @@ class Tarnemma {
       return downloadUrl;
     }
 
+    if (source == HymnSource.taranimar) {
+      downloadUrl = 'https://taranimarabia.org/music/$id.mp3';
+      return downloadUrl;
+    }
+
     isResolvingStream.value = true;
     try {
-      // 1. Primary: Use pytubefix-based VISIONOS Innertube stream resolution
-      final vUrl = await resolveVisionOsAudio(id);
+      final vUrl = await YouTubeAudioResolver.getAudioUrl(id);
       if (vUrl != null && vUrl.isNotEmpty) {
         downloadUrl = vUrl;
-        if (kDebugMode) print("Resolved VisionOS audio stream URL: $downloadUrl");
-        return downloadUrl;
-      }
-
-      // 2. Fallback: youtube_explode_dart
-      if (kDebugMode) print("Fallback to youtube_explode_dart for $id");
-      StreamManifest manifest;
-      try {
-        manifest = await yt.videos.streamsClient.getManifest(
-          id,
-          ytClients: [YoutubeApiClient.androidSdkless],
-          requireWatchPage: false,
-        );
-      } catch (e) {
-        manifest = await yt.videos.streamsClient.getManifest(
-          id,
-          requireWatchPage: false,
-        );
-      }
-
-      final audioStreams = manifest.audioOnly;
-      if (audioStreams.isNotEmpty) {
-        final mp4Streams =
-            audioStreams.where((s) => s.container.name.toLowerCase() == 'mp4');
-        final bestAudio = mp4Streams.isNotEmpty
-            ? mp4Streams.withHighestBitrate()
-            : audioStreams.withHighestBitrate();
-
-        downloadUrl = bestAudio.url.toString();
-        if (kDebugMode) print("Resolved audio stream URL from fallback: $downloadUrl");
         return downloadUrl;
       }
     } catch (e) {
-      if (kDebugMode) print("Error fetching stream manifest for $id: $e");
+      if (kDebugMode) print("Error getting audio URL: $e");
     } finally {
       isResolvingStream.value = false;
     }
@@ -274,82 +215,85 @@ class Tarnemma {
   }
 
   Future<void> download() async {
-    if (downloadProcess.value == DownloadTaskStatus.running ||
-        downloadProcess.value == DownloadTaskStatus.enqueued) {
-      return;
-    }
-
-    final hasConnection = await InternetConnectionChecker().hasConnection;
-    if (!hasConnection) {
+    final hasInternet = await InternetConnectionChecker().hasConnection;
+    if (!hasInternet) {
       showCustomSnackbar(
-        "خطأ",
-        "لا يوجد اتصال بالانترنت",
-        Icons.wifi_off_rounded,
+        "لا يوجد اتصال",
+        "تأكد من الاتصال بالإنترنت لبدء التحميل",
+        Icons.wifi_off,
       );
       return;
     }
 
-    await checkAndRequestPermissions();
+    final hasPermission = await checkAndRequestPermissions();
+    if (!hasPermission) {
+      showCustomSnackbar(
+        "خطأ في الصلاحيات",
+        "يرجى منح صلاحية التخزين لحفظ الترانيم",
+        Icons.folder_off,
+      );
+      return;
+    }
 
-    downloadProcess.value = DownloadTaskStatus.running;
+    downloadProcess.value = DownloadTaskStatus.enqueued;
+    downloadProgress.value = 0;
 
     final url = await getAudioUrl();
     if (url == null || url.isEmpty) {
       downloadProcess.value = DownloadTaskStatus.failed;
       showCustomSnackbar(
-        "خطأ",
-        "تعذر استخراج ملف الصوت للتحميل",
+        "خطأ في التحميل",
+        "تعذر استخراج رابط الصوت للتحميل",
         Icons.error_outline,
       );
       return;
     }
 
     try {
-      final saveDir = await getDownloadPath();
-      final cleanName = "${sanitizeFileName(title)}.m4a";
+      final savedDir = await getDownloadPath();
+      final dir = Directory(savedDir);
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      }
+
+      final fileName = "${sanitizeFileName(title)}.mp3";
 
       taskId = await FlutterDownloader.enqueue(
         url: url,
-        savedDir: saveDir,
-        fileName: cleanName,
+        headers: {
+          'User-Agent':
+              'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+        },
+        savedDir: savedDir,
+        fileName: fileName,
         showNotification: true,
         openFileFromNotification: true,
         saveInPublicStorage: true,
       );
 
-      showCustomSnackbar(
-        "بدأ التحميل",
-        title,
-        Icons.downloading,
-      );
+      if (taskId != null) {
+        downloadProcess.value = DownloadTaskStatus.running;
+        showCustomSnackbar(
+          "بدء التحميل",
+          "جاري تحميل ترنيمة: $title",
+          Icons.downloading,
+        );
+      } else {
+        downloadProcess.value = DownloadTaskStatus.failed;
+        showCustomSnackbar(
+          "خطأ",
+          "فشل في إضافة مهمة التحميل",
+          Icons.error_outline,
+        );
+      }
     } catch (e) {
-      if (kDebugMode) print("Download error: $e");
+      if (kDebugMode) print("Download enqueue error: $e");
       downloadProcess.value = DownloadTaskStatus.failed;
       showCustomSnackbar(
-        "خطأ",
-        "فشل بدء التحميل",
+        "خطأ في التحميل",
+        "حدث خطأ أثناء بدء التحميل: $e",
         Icons.error_outline,
       );
-    }
-  }
-
-  void pause() {
-    if (taskId != null) {
-      FlutterDownloader.pause(taskId: taskId!);
-    }
-  }
-
-  void resume() {
-    if (taskId != null) {
-      FlutterDownloader.resume(taskId: taskId!);
-    }
-  }
-
-  void cancel() {
-    if (taskId != null) {
-      FlutterDownloader.cancel(taskId: taskId!);
-      downloadProcess.value = DownloadTaskStatus.canceled;
-      downloadProgress.value = 0;
     }
   }
 }
