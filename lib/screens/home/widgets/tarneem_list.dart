@@ -1,56 +1,213 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:get/state_manager.dart';
+import 'package:get/get.dart';
 
+import '../../../player.dart';
 import '../../../tarnemma.dart';
 import '../home_controller.dart';
 
 class TraneemList extends StatelessWidget {
   const TraneemList({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   final HomeController controller;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: controller.traneem.length,
-      itemBuilder: (context, index) {
-        final t = controller.traneem[index] as Tarnemma;
-        return ListTile(
-          title: Text(
-            t.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
+    return Obx(() {
+      if (controller.loading.value) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              t.downloadProcess.value == DownloadTaskStatus.complete
-                  ? const IconButton(icon: Icon(Icons.check), onPressed: null)
-                  : Obx(() =>
-                      t.downloadProcess.value == DownloadTaskStatus.running
-                          ? const Center(
-                              child: IconButton(
-                              onPressed: null,
-                              icon: SizedBox(
-                                  width: 23,
-                                  height: 23,
-                                  child: CircularProgressIndicator()),
-                            ))
-                          : IconButton(
-                              onPressed: () => t.download(),
-                              icon: const Icon(Icons.download))),
-              IconButton(
-                  onPressed: () => t.play(),
-                  icon: const Icon(Icons.play_arrow)),
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text(
+                "جاري البحث عن الترانيم...",
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
             ],
           ),
         );
-      },
+      }
+
+      if (controller.traneem.isEmpty) {
+        final suggestions = [
+          "انا شاعر بيك",
+          "يسوع فادي النفس",
+          "علمني انتظر الرب",
+          "بارك بلادي",
+          "يا صاحب الحنان",
+        ];
+
+        return Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.music_note_rounded,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "ابحث عن أي ترنيمة للاستماع أو التحميل",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "اقتراحات سريعة:",
+                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: suggestions.map((s) {
+                      return ActionChip(
+                        label: Text(s),
+                        avatar: const Icon(Icons.search, size: 16),
+                        onPressed: () => controller.query(s),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.only(bottom: 85),
+        physics: const BouncingScrollPhysics(),
+        itemCount: controller.traneem.length,
+        itemBuilder: (context, index) {
+          final t = controller.traneem[index];
+          return TraneemTile(tarnemma: t);
+        },
+      );
+    });
+  }
+}
+
+class TraneemTile extends StatelessWidget {
+  final Tarnemma tarnemma;
+
+  const TraneemTile({
+    super.key,
+    required this.tarnemma,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () => tarnemma.play(),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: tarnemma.thumbnail.isNotEmpty
+            ? Image.network(
+                tarnemma.thumbnail,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.music_note, size: 32),
+              )
+            : const Icon(Icons.music_note, size: 32),
+      ),
+      title: Text(
+        tarnemma.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        tarnemma.author.isNotEmpty
+            ? "${tarnemma.author} • ${tarnemma.duration}"
+            : tarnemma.duration,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 11, color: Colors.grey),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Download action
+          Obx(() {
+            final status = tarnemma.downloadProcess.value;
+            if (status == DownloadTaskStatus.complete) {
+              return const IconButton(
+                icon: Icon(Icons.check_circle, color: Colors.green),
+                onPressed: null,
+                tooltip: "تم التحميل",
+              );
+            } else if (status == DownloadTaskStatus.running ||
+                status == DownloadTaskStatus.enqueued) {
+              final progress = tarnemma.downloadProgress.value;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: progress > 0
+                      ? CircularProgressIndicator(
+                          value: progress / 100.0,
+                          strokeWidth: 2.5,
+                        )
+                      : const CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              );
+            } else {
+              return IconButton(
+                onPressed: () => tarnemma.download(),
+                icon: const Icon(Icons.download),
+                tooltip: "تحميل",
+              );
+            }
+          }),
+          // Play / Pause action
+          Obx(() {
+            final isCurrentSong =
+                Player.currentSongId.value == tarnemma.id;
+            final isPlaying = isCurrentSong && Player.isPlaying.value;
+            final isBuffering =
+                (isCurrentSong && Player.isBuffering.value) ||
+                tarnemma.isResolvingStream.value;
+
+            if (isBuffering) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              );
+            }
+
+            return IconButton(
+              onPressed: () => tarnemma.play(),
+              icon: Icon(
+                isPlaying ? Icons.pause_circle_filled : Icons.play_arrow,
+                color:
+                    isPlaying ? Theme.of(context).colorScheme.primary : null,
+              ),
+              tooltip: isPlaying ? "إيقاف مؤقت" : "تشغيل",
+            );
+          }),
+        ],
+      ),
     );
   }
 }

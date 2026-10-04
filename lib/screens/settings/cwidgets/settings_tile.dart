@@ -5,8 +5,7 @@ class SettingsListTile extends StatelessWidget {
   final Function()? action;
   final String? title;
 
-  const SettingsListTile({Key? key, this.icon, this.action, this.title})
-      : super(key: key);
+  const SettingsListTile({super.key, this.icon, this.action, this.title});
   @override
   Widget build(BuildContext context) {
     return ListTile(

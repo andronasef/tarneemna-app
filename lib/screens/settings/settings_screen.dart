@@ -10,7 +10,7 @@ import 'cwidgets/settings_tile.dart';
 import 'cwidgets/settings_title.dart';
 
 class SettingsScreen extends GetView<HomeController> {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

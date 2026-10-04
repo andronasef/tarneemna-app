@@ -5,62 +5,97 @@ import '../../../player.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration:
-            const BoxDecoration(border: Border(top: BorderSide(width: .5))),
-        height: 70,
-        child: Obx(() => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 200,
-                    child: Text(
-                      Player.currentSongTitle.value.isEmpty
-                          ? "لا يوجد ترنيمة قيد التشغيل"
-                          : Player.currentSongTitle.value,
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            offset: Offset(0, -2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Obx(
+        () {
+          final hasSong = Player.currentSongTitle.value.isNotEmpty;
+          final isPlaying = Player.isPlaying.value;
+          final isBuffering = Player.isBuffering.value;
+
+          return Row(
+            children: [
+              Expanded(
+                child: Text(
+                  hasSong
+                      ? Player.currentSongTitle.value
+                      : "لا توجد ترنيمة قيد التشغيل",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: hasSong ? FontWeight.w600 : FontWeight.normal,
+                    color: hasSong ? null : Colors.grey,
                   ),
-                  const Spacer(),
-                  const MIcon(Icons.forward_5, Player.forward5),
-                  MIcon(Player.isPlaying.value ? Icons.pause : Icons.play_arrow,
-                      Player.isPlaying.value ? Player.stop : Player.play),
-                  const MIcon(Icons.replay_5, Player.back5),
-                  // const SizedBox(
-                  //   width: 10,
-                  // )
-                ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            )));
-  }
-}
-
-class MIcon extends StatelessWidget {
-  final VoidCallback function;
-  final IconData iconData;
-
-  const MIcon(
-    this.iconData,
-    this.function, {
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(
-      () => IconButton(
-          iconSize: 26,
-          padding: const EdgeInsets.symmetric(horizontal: 2.5),
-          constraints: const BoxConstraints(),
-          onPressed: Player.currentSongTitle.value.isEmpty ? null : function,
-          icon: Icon(iconData)),
+              IconButton(
+                iconSize: 26,
+                onPressed: hasSong ? Player.back5 : null,
+                icon: const Icon(Icons.replay_5),
+                tooltip: "إرجاع 5 ثواني",
+              ),
+              if (isBuffering)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                )
+              else
+                IconButton(
+                  iconSize: 32,
+                  onPressed: hasSong
+                      ? () {
+                          if (isPlaying) {
+                            Player.pause();
+                          } else {
+                            Player.play();
+                          }
+                        }
+                      : null,
+                  icon: Icon(
+                    isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
+                    color: hasSong
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
+                  ),
+                  tooltip: isPlaying ? "إيقاف مؤقت" : "تشغيل",
+                ),
+              IconButton(
+                iconSize: 26,
+                onPressed: hasSong ? Player.forward5 : null,
+                icon: const Icon(Icons.forward_5),
+                tooltip: "تقديم 5 ثواني",
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

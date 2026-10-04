@@ -6,8 +6,8 @@ class SettingsTitle extends StatelessWidget {
 
   const SettingsTitle(
     this.title, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 
 import 'app/app.dart';
 import 'firebase_options.dart';
+import 'tarnemma.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -21,22 +22,8 @@ Future<void> main(List<String> args) async {
   );
   await FlutterDownloader.initialize(debug: kDebugMode);
 
+  // Initialize YouTube solver
+  await initYoutubeExplode();
+
   runApp(const App());
 }
-
-
-// [x]: Stop and play song
-// [x]: Check Internet connection => https://pub.dev/packages/internet_connection_checker
-// [x]: Add Firebase Analytics
-// [x]: صغر خط الترانيم
-// [x]: Make App Color Better
-// [x]: Audio Player UI
-// [x]: Elvation Mini Player
-// [x]: Add App Share
-// [x]: Complete UI (Settings & Info)
-
-//* For Future
-// TODO: Add Animations (Fade - List Animations)
-// TODO: Radio Mode
-// TODO: Recently Played From Other Users
-

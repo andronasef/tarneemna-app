@@ -1,12 +1,12 @@
 name: tarneemna
-description: A Search and Download for Tarneem App
+description: ترانيمنا تطبيق ترانيم بدون انترنت
 
-publish_to: 'none'
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.1+2
+version: 2.0.0+3
 
 environment:
-  sdk: '>=2.16.2 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -14,30 +14,32 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  youtube_explode_dart: ^1.11.0
-  just_audio: ^0.9.28
-  get: ^4.6.5
-  flutter_downloader: ^1.7.4
-  path_provider: ^2.0.11
-  permission_handler: ^11.0.1
+  cupertino_icons: ^1.0.6
+  get: ^4.6.6
+  youtube_explode_dart: ^3.1.0
+  just_audio: ^0.9.36
+  rxdart: ^0.27.7
+  flutter_downloader: ^1.11.5
+  permission_handler: ^11.4.0
+  path_provider: ^2.1.1
+  url_launcher: ^6.3.0
   firebase_analytics: ^10.7.4
-  url_launcher: ^6.1.5
   firebase_core: ^2.24.2
-  google_fonts: ^4.0.4
-  android_path_provider: ^0.3.0
+  google_fonts: ^6.2.1
+  android_path_provider: ^0.3.2
   flutter_fadein: ^2.0.0
   miniplayer: ^1.0.1
   internet_connection_checker: ^1.0.0+1
   flutter_hooks: ^0.20.3
   flutter_markdown: ^0.6.10+3
   share_plus: ^7.2.1
+  flutter_native_splash: ^2.3.7
+  youtube_explode_webview: ^0.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: # flutter pub run flutter_launcher_icons:main
-  flutter_native_splash: # flutter pub run flutter_native_splash:create
-  dapackages: # flutter pub run dapackages:dapackages.dart ./pubspec.yaml
 
   flutter_lints: ^3.0.1
 
@@ -46,15 +48,3 @@ flutter:
 
   assets:
     - assets/md/
-
-flutter_icons:
-  android: 'launcher_icon'
-  image_path: 'icon.png' # TODO: Add Logo
-
-flutter_native_splash:
-  color: '#e05438'
-  #background_image: "assets/background.png"
-  image: splash.png # TODO: Add The Same Logo
-  #color_dark: "#042a49"
-  #background_image_dark: "assets/dark-background.png"
-  #image_dark: assets/splash-invert.png

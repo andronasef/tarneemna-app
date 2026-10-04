@@ -12,29 +12,43 @@ import 'widgets/miniplayer.dart';
 import 'widgets/tarneem_list.dart';
 import 'widgets/tarnema_search.dart';
 
+@pragma('vm:entry-point')
+void downloadCallback(String id, int status, int progress) {
+  final SendPort? send =
+      IsolateNameServer.lookupPortByName('downloader_send_port');
+  send?.send([id, status, progress]);
+}
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
   final ReceivePort _port = ReceivePort();
-  final controller = Get.find<HomeController>();
+  late final HomeController controller;
+
   @override
   void initState() {
     super.initState();
+    controller = Get.find<HomeController>();
 
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
     IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
+      _port.sendPort,
+      'downloader_send_port',
+    );
 
     _port.listen((dynamic data) {
-      // String id = data[0];
-      // DownloadTaskStatus status = data[1];
-      // int progress = data[2];
-      // setState(() {});
+      if (data is List && data.length >= 3) {
+        final String id = data[0] as String;
+        final int rawStatus = data[1] as int;
+        final int progress = data[2] as int;
+        final status = DownloadTaskStatus.values[rawStatus];
+        controller.updateDownloadStatus(id, status, progress);
+      }
     });
 
     FlutterDownloader.registerCallback(downloadCallback);
@@ -43,16 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     IsolateNameServer.removePortNameMapping('downloader_send_port');
+    _port.close();
     super.dispose();
   }
 
-  @pragma('vm:entry-point')
-  static void downloadCallback(String id, int status, int progress) {
-    final SendPort? send =
-        IsolateNameServer.lookupPortByName('downloader_send_port');
-    send?.send([id, status, progress]);
-  }
-
+  @override
   Widget build(BuildContext context) {
     return FadeIn(
       child: Directionality(
@@ -62,8 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               IconButton(
                 onPressed: () async {
-                  // go to settings page using navigator
-                  await Get.to(const SettingsScreen());
+                  await Get.to(() => const SettingsScreen());
                 },
                 icon: const Icon(Icons.settings),
                 tooltip: "الاعدادات",
@@ -75,20 +83,22 @@ class _HomeScreenState extends State<HomeScreen> {
           body: SafeArea(
             child: Column(
               children: [
+                const SizedBox(height: 10),
                 TarnemaSearch(controller: controller),
+                const SizedBox(height: 10),
                 Expanded(
-                    child: Obx(
-                  () => controller.loading.value
-                      ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : controller.traneem.isNotEmpty
-                          ? TraneemList(controller: controller)
-                          : const Center(
-                              child: Text(
-                                  "ادخل اسم الترنيمة في مربع البحث من فضلك...")),
-                )),
-                const MiniPlayer(),
+                  child: Stack(
+                    children: [
+                      TraneemList(controller: controller),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        left: 0,
+                        child: MiniPlayer(),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

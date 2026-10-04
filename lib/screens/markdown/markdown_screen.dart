@@ -5,10 +5,10 @@ import 'package:get/get.dart';
 
 class MarkdownPage extends StatefulWidget {
   final String theMarkdownFilePath;
-  const MarkdownPage(this.theMarkdownFilePath, {Key? key}) : super(key: key);
+  const MarkdownPage(this.theMarkdownFilePath, {super.key});
 
   @override
-  _MarkdownPageState createState() => _MarkdownPageState();
+  State<MarkdownPage> createState() => _MarkdownPageState();
 }
 
 class _MarkdownPageState extends State<MarkdownPage> {
