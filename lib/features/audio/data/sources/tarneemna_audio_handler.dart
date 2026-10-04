@@ -17,8 +17,6 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _playbackEventSubscription;
   StreamSubscription? _durationSubscription;
-  StreamSubscription? _positionSubscription;
-  StreamSubscription? _bufferedPositionSubscription;
 
   TarneemnaAudioHandler({
     AudioPlayer? player,
@@ -62,13 +60,9 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
       }
     });
 
-    _positionSubscription = _player.positionStream.listen((_) {
-      _broadcastPlaybackState(_player.playbackEvent);
-    });
-
-    _bufferedPositionSubscription = _player.bufferedPositionStream.listen((_) {
-      _broadcastPlaybackState(_player.playbackEvent);
-    });
+    // Position is NOT broadcast per tick: PlaybackState carries updatePosition + speed,
+    // so the notification extrapolates it. Per-tick broadcasts flooded the platform
+    // channel and rebuilt every playbackState listener ~60x/sec.
   }
 
   void _broadcastPlaybackState(PlaybackEvent event) {
@@ -384,8 +378,6 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     await _playerStateSubscription?.cancel();
     await _playbackEventSubscription?.cancel();
     await _durationSubscription?.cancel();
-    await _positionSubscription?.cancel();
-    await _bufferedPositionSubscription?.cancel();
     await _player.dispose();
   }
 }

@@ -178,6 +178,7 @@ class _OfflineDownloadsScreenState extends ConsumerState<OfflineDownloadsScreen>
             ? Image.network(
                 hymn.artworkUrl!,
                 fit: BoxFit.cover,
+                cacheWidth: 150,
                 errorBuilder: (_, __, ___) => Image.asset(
                   'assets/icon.png',
                   fit: BoxFit.cover,

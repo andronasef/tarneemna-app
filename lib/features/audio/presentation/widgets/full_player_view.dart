@@ -11,27 +11,25 @@ import 'package:tarneemna/features/lyrics/presentation/widgets/lyrics_bottom_she
 import 'package:tarneemna/features/lyrics/presentation/widgets/quote_card_dialog.dart';
 import 'package:tarneemna/features/lyrics/presentation/widgets/sheet_music_modal.dart';
 
+String _formatDuration(Duration duration) {
+  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$minutes:$seconds';
+}
+
 class FullPlayerView extends ConsumerWidget {
   final VoidCallback? onCollapse;
 
   const FullPlayerView({super.key, this.onCollapse});
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audioHandler = ref.watch(audioHandlerProvider);
     final mediaItemAsync = ref.watch(currentMediaItemStreamProvider);
     final playbackStateAsync = ref.watch(playbackStateStreamProvider);
-    final positionAsync = ref.watch(audioPositionStreamProvider);
 
     final currentItem = mediaItemAsync.value;
     final playbackState = playbackStateAsync.value;
-    final currentPosition = positionAsync.value ?? Duration.zero;
 
     if (currentItem == null) {
       return const Scaffold(
@@ -41,8 +39,6 @@ class FullPlayerView extends ConsumerWidget {
 
     final totalDuration = currentItem.duration ?? Duration.zero;
     final isPlaying = playbackState?.playing ?? false;
-    final maxSec = totalDuration.inSeconds.toDouble();
-    final currentSec = currentPosition.inSeconds.toDouble().clamp(0.0, maxSec > 0 ? maxSec : 1.0);
     final isFavorite = ref.watch(isFavoriteProvider(currentItem.id));
     final currentHymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
 
@@ -164,38 +160,8 @@ class FullPlayerView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 12),
 
-                          // Seeker Bar
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                            ),
-                            child: Slider(
-                              value: currentSec,
-                              min: 0.0,
-                              max: maxSec > 0 ? maxSec : 1.0,
-                              onChanged: (val) {
-                                audioHandler.seek(Duration(seconds: val.toInt()));
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatDuration(currentPosition),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                Text(
-                                  _formatDuration(totalDuration),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Seeker Bar (isolated: only this rebuilds on position ticks)
+                          _SeekBar(audioHandler: audioHandler, totalDuration: totalDuration),
                           const Spacer(flex: 1),
 
                           // Main Playback Controls
@@ -280,7 +246,7 @@ class FullPlayerView extends ConsumerWidget {
                               IconButton(
                                 icon: const Icon(Icons.loop_rounded),
                                 tooltip: 'تكرار مقطع (A-B)',
-                                onPressed: () => _showAbRepeatDialog(context, ref, currentPosition),
+                                onPressed: () => _showAbRepeatDialog(context, ref, audioHandler.player.position),
                               ),
                               // Interactive Lyrics
                               IconButton(
@@ -496,6 +462,50 @@ class FullPlayerView extends ConsumerWidget {
                 ),
         ),
       ),
+    );
+  }
+}
+
+class _SeekBar extends ConsumerWidget {
+  final TarneemnaAudioHandler audioHandler;
+  final Duration totalDuration;
+
+  const _SeekBar({required this.audioHandler, required this.totalDuration});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPosition = ref.watch(audioPositionStreamProvider).value ?? Duration.zero;
+    final maxSec = totalDuration.inSeconds.toDouble();
+    final currentSec = currentPosition.inSeconds.toDouble().clamp(0.0, maxSec > 0 ? maxSec : 1.0);
+
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: currentSec,
+            min: 0.0,
+            max: maxSec > 0 ? maxSec : 1.0,
+            onChanged: (val) {
+              audioHandler.seek(Duration(seconds: val.toInt()));
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(_formatDuration(currentPosition), style: Theme.of(context).textTheme.bodySmall),
+              Text(_formatDuration(totalDuration), style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

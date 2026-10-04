@@ -80,6 +80,7 @@ class AlbumDetailScreen extends ConsumerWidget {
                               ? Image.network(
                                   artworkUrl!,
                                   fit: BoxFit.cover,
+                                  cacheWidth: 600,
                                   errorBuilder: (_, __, ___) => Image.asset(
                                     'assets/icon.png',
                                     fit: BoxFit.cover,

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:typed_data';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
@@ -21,7 +23,7 @@ class TaranimArabiaRemoteDataSource {
         'Accept-Language': 'ar,en-US;q=0.9,en;q=0.8',
       };
 
-  String _cleanUrl(String? url) {
+  static String _cleanUrl(String? url) {
     if (url == null || url.isEmpty) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
@@ -32,7 +34,7 @@ class TaranimArabiaRemoteDataSource {
     return '$baseUrl/$url';
   }
 
-  Future<Document> _getHtml(String pathOrUrl) async {
+  Future<Uint8List> _getHtml(String pathOrUrl) async {
     final uri = pathOrUrl.startsWith('http')
         ? Uri.parse(pathOrUrl)
         : Uri.parse('$baseUrl$pathOrUrl');
@@ -49,7 +51,7 @@ class TaranimArabiaRemoteDataSource {
           statusCode: response.statusCode,
         );
       }
-      return html_parser.parse(utf8.decode(response.bodyBytes, allowMalformed: true));
+      return response.bodyBytes;
     } on TaranimArabiaException {
       rethrow;
     } catch (e) {
@@ -60,14 +62,20 @@ class TaranimArabiaRemoteDataSource {
     }
   }
 
+  // Pages are large; decoding + parsing them on the UI isolate dropped frames
+  // (home loads 3 pages at once). Static so the closure doesn't capture `this`.
+  static Future<T> _parse<T>(Uint8List bytes, T Function(Document) parser) {
+    return Isolate.run(() => parser(html_parser.parse(utf8.decode(bytes, allowMalformed: true))));
+  }
+
   /// 1. Search hymns by title/keyword
   Future<List<Hymn>> searchSongs(String query, {int page = 1}) async {
     final encodedQuery = Uri.encodeComponent(query);
     final doc = await _getHtml('/search?searchByWord=$encodedQuery&searchBySinger=0');
-    return parseSearchResults(doc);
+    return _parse(doc, parseSearchResults);
   }
 
-  List<Hymn> parseSearchResults(Document doc) {
+  static List<Hymn> parseSearchResults(Document doc) {
     final List<Hymn> results = [];
     final boxes = doc.querySelectorAll('.song-info-box');
 
@@ -116,10 +124,16 @@ class TaranimArabiaRemoteDataSource {
   /// 2. Get full song details (lyrics, MP3, album, chords, notes)
   Future<Hymn> getSongDetails(String songId) async {
     final doc = await _getHtml('/song/$songId');
-    return parseSongDetails(doc, songId);
+    return _parseSongDetails(doc, songId);
   }
 
-  Hymn parseSongDetails(Document doc, String songId) {
+  static Future<Hymn> _parseSongDetails(Uint8List bytes, String songId) {
+    return Isolate.run(
+      () => parseSongDetails(html_parser.parse(utf8.decode(bytes, allowMalformed: true)), songId),
+    );
+  }
+
+  static Hymn parseSongDetails(Document doc, String songId) {
     final songLink = doc.querySelector('a[href*="/song/$songId"]');
     var title = songLink?.querySelector('h4')?.text.trim() ?? '';
     title = title.replaceAll(RegExp(r'\(\s*.*?\s*\)'), '').trim();
@@ -202,10 +216,10 @@ class TaranimArabiaRemoteDataSource {
   /// 3. Browse singers directory
   Future<List<Singer>> getSingers({int page = 1}) async {
     final doc = await _getHtml('/allsingers');
-    return parseSingers(doc);
+    return _parse(doc, parseSingers);
   }
 
-  List<Singer> parseSingers(Document doc) {
+  static List<Singer> parseSingers(Document doc) {
     final List<Singer> singers = [];
     final items = doc.querySelectorAll('.playlist-item');
 
@@ -237,16 +251,16 @@ class TaranimArabiaRemoteDataSource {
   /// 4. Get songs by singer
   Future<List<Hymn>> getSingerSongs(String singerId) async {
     final doc = await _getHtml('/singer/$singerId');
-    return parseSearchResults(doc);
+    return _parse(doc, parseSearchResults);
   }
 
   /// 5. Browse albums directory
   Future<List<Album>> getAlbums({int page = 1}) async {
     final doc = await _getHtml('/albums');
-    return parseAlbums(doc);
+    return _parse(doc, parseAlbums);
   }
 
-  List<Album> parseAlbums(Document doc) {
+  static List<Album> parseAlbums(Document doc) {
     final List<Album> albums = [];
     final items = doc.querySelectorAll('.playlist-item');
 
@@ -278,16 +292,16 @@ class TaranimArabiaRemoteDataSource {
   /// 6. Get songs from album
   Future<List<Hymn>> getAlbumSongs(String albumId) async {
     final doc = await _getHtml('/album/$albumId');
-    return parseSearchResults(doc);
+    return _parse(doc, parseSearchResults);
   }
 
   /// 7. Hymn of the Day from homepage
   Future<Hymn?> getHymnOfTheDay() async {
     final doc = await _getHtml('/');
-    return parseHymnOfTheDay(doc);
+    return _parse(doc, parseHymnOfTheDay);
   }
 
-  Hymn? parseHymnOfTheDay(Document doc) {
+  static Hymn? parseHymnOfTheDay(Document doc) {
     final premiumItems = doc.querySelectorAll('.premium-item');
     if (premiumItems.isEmpty) return null;
 

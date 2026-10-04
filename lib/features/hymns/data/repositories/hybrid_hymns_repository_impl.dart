@@ -37,24 +37,16 @@ class HybridHymnsRepositoryImpl implements HybridHymnsRepository {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) return [];
 
-    List<Hymn> taranimResults = [];
-    List<Hymn> youtubeResults = [];
-
-    // 1. Query Taranim Arabia
-    try {
-      taranimResults = await _taranimArabiaRepo.searchSongs(cleanQuery);
-    } catch (e) {
-      if (kDebugMode) print('Taranim Arabia search error: $e');
-    }
-
-    // 2. Query YouTube if requested
-    if (includeYouTube) {
-      try {
-        youtubeResults = await YouTubeAudioResolver.searchVideos(cleanQuery);
-      } catch (e) {
-        if (kDebugMode) print('YouTube search error: $e');
-      }
-    }
+    // 1 & 2. Query Taranim Arabia and YouTube in parallel
+    final results = await Future.wait([
+      _taranimArabiaRepo.searchSongs(cleanQuery).catchError((Object e) {
+        if (kDebugMode) print('Taranim Arabia search error: $e');
+        return <Hymn>[];
+      }),
+      if (includeYouTube) YouTubeAudioResolver.searchVideos(cleanQuery),
+    ]);
+    final taranimResults = results[0];
+    final youtubeResults = results.length > 1 ? results[1] : const <Hymn>[];
 
     // 3. Deduplicate: prioritize Taranim Arabia results
     final seenNormalizedTitles = <String>{};

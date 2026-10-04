@@ -7,6 +7,8 @@ import '../../../player.dart';
 
 final MiniplayerController miniplayerController = MiniplayerController();
 
+void _collapsePlayer() => miniplayerController.animateToHeight(state: PanelState.MIN);
+
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
 
@@ -26,10 +28,16 @@ class MiniPlayer extends StatelessWidget {
           final isMini = percentage < 0.2;
 
           if (!isMini) {
-            return FullPlayerView(
-              onCollapse: () {
-                miniplayerController.animateToHeight(state: PanelState.MIN);
-              },
+            // builder runs every drag/animation frame. Lay the player out at a fixed
+            // full height and clip it, so frames only repaint instead of rebuilding
+            // and re-laying-out the whole (IntrinsicHeight) player.
+            return ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.topCenter,
+                minHeight: height,
+                maxHeight: height,
+                child: const FullPlayerView(onCollapse: _collapsePlayer),
+              ),
             );
           }
 

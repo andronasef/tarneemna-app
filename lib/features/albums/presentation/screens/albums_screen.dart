@@ -136,6 +136,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                                         album.imageUrl!,
                                         fit: BoxFit.cover,
                                         width: double.infinity,
+                                        cacheWidth: 400,
                                         errorBuilder: (_, __, ___) => Image.asset(
                                           'assets/icon.png',
                                           fit: BoxFit.cover,

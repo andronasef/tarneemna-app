@@ -69,8 +69,8 @@ Future<void> main(List<String> args) async {
   );
   await FlutterDownloader.initialize(debug: kDebugMode);
 
-  // Initialize YouTube solver
-  await initYoutubeExplode();
+  // YouTube JS solver boots a WebView; don't block first frame on it.
+  unawaited(initYoutubeExplode());
 
   runApp(
     ProviderScope(
