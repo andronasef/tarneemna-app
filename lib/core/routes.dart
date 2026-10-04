@@ -5,9 +5,9 @@ import 'package:tarneemna/features/downloads/presentation/screens/storage_manage
 import 'package:tarneemna/features/library/presentation/screens/favorites_screen.dart';
 import 'package:tarneemna/features/library/presentation/screens/history_screen.dart';
 import 'package:tarneemna/features/library/presentation/screens/playlists_screen.dart';
+import 'package:tarneemna/features/settings/presentation/screens/settings_screen.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singers_screen.dart';
 import '../screens/home/home_screen.dart';
-import '../screens/settings/settings_screen.dart';
 
 abstract class Routes {
   static const home = '/';
@@ -30,7 +30,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: Routes.settings,
-      builder: (context, state) => const SettingsScreen(),
+      builder: (context, state) => const ModernSettingsScreen(),
     ),
     GoRoute(
       path: Routes.downloads,

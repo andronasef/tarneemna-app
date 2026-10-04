@@ -19,6 +19,8 @@ import 'features/library/data/sources/personal_library_service.dart';
 import 'features/library/presentation/providers/library_providers.dart';
 import 'features/search/data/sources/search_history_service.dart';
 import 'features/search/presentation/providers/search_providers.dart';
+import 'features/settings/data/sources/settings_service.dart';
+import 'features/settings/presentation/providers/settings_providers.dart';
 import 'firebase_options.dart';
 import 'player.dart';
 import 'tarnemma.dart';
@@ -42,6 +44,9 @@ Future<void> main(List<String> args) async {
 
   final searchHistoryService = SearchHistoryService();
   await searchHistoryService.init();
+
+  final settingsService = SettingsService();
+  await settingsService.init();
 
   // Initialize Audio Service for background playback
   final audioHandler = await AudioService.init(
@@ -74,6 +79,7 @@ Future<void> main(List<String> args) async {
         offlineStorageServiceProvider.overrideWithValue(offlineStorageService),
         personalLibraryServiceProvider.overrideWithValue(personalLibraryService),
         searchHistoryServiceProvider.overrideWithValue(searchHistoryService),
+        settingsServiceProvider.overrideWithValue(settingsService),
         audioHandlerProvider.overrideWithValue(audioHandler),
       ],
       child: const App(),

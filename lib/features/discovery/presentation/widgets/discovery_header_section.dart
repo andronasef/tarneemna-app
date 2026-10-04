@@ -8,6 +8,7 @@ import 'package:tarneemna/features/downloads/presentation/screens/storage_manage
 import 'package:tarneemna/features/library/presentation/screens/favorites_screen.dart';
 import 'package:tarneemna/features/library/presentation/screens/history_screen.dart';
 import 'package:tarneemna/features/library/presentation/screens/playlists_screen.dart';
+import 'package:tarneemna/features/settings/presentation/screens/settings_screen.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singer_detail_screen.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singers_screen.dart';
 import 'package:tarneemna/features/taranim_arabia/presentation/providers/taranim_arabia_providers.dart';
@@ -25,7 +26,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Quick Action Chips (Personal Library & Downloads)
+        // Quick Action Chips (Personal Library, Downloads & Settings)
         SizedBox(
           height: 52,
           child: ListView(
@@ -83,6 +84,17 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const StorageManagerScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              ActionChip(
+                avatar: const Icon(Icons.palette_outlined, color: Colors.indigoAccent, size: 18),
+                label: const Text('المظهر والإعدادات'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ModernSettingsScreen()),
                   );
                 },
               ),
