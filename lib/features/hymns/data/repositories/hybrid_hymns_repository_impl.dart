@@ -82,8 +82,9 @@ class HybridHymnsRepositoryImpl implements HybridHymnsRepository {
       }
     }
 
-    if (_cache != null && combined.isNotEmpty) {
-      await _cache!.cacheHymns(combined);
+    final cache = _cache;
+    if (cache != null && combined.isNotEmpty) {
+      await cache.cacheHymns(combined);
     }
 
     return combined;
@@ -99,8 +100,9 @@ class HybridHymnsRepositoryImpl implements HybridHymnsRepository {
     if (hymn.audioUrl == null || hymn.audioUrl!.isEmpty) {
       final url = await YouTubeAudioResolver.getAudioUrl(hymn.id);
       final updated = hymn.copyWith(audioUrl: url);
-      if (_cache != null) {
-        await _cache!.cacheHymn(updated);
+      final cache = _cache;
+      if (cache != null) {
+        await cache.cacheHymn(updated);
       }
       return updated;
     }

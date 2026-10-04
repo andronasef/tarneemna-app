@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
+import 'features/audio/data/sources/tarneemna_audio_handler.dart';
+import 'features/audio/presentation/providers/audio_providers.dart';
 import 'features/hymns/data/sources/local_hymn_cache.dart';
 import 'firebase_options.dart';
+import 'player.dart';
 import 'tarnemma.dart';
 
 Future<void> main(List<String> args) async {
@@ -23,6 +27,18 @@ Future<void> main(List<String> args) async {
   await Hive.initFlutter();
   final localHymnCache = LocalHymnCache();
   await localHymnCache.init();
+
+  // Initialize Audio Service for background playback
+  final audioHandler = await AudioService.init(
+    builder: () => TarneemnaAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.increase.tarneemna.audio',
+      androidNotificationChannelName: 'تشغيل الترانيم',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+    ),
+  );
+  Player.init(audioHandler);
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -37,6 +53,7 @@ Future<void> main(List<String> args) async {
     ProviderScope(
       overrides: [
         localHymnCacheProvider.overrideWithValue(localHymnCache),
+        audioHandlerProvider.overrideWithValue(audioHandler),
       ],
       child: const App(),
     ),

@@ -1,15 +1,25 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tarneemna/features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
-import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 
 import 'tarnemma.dart';
-import 'widgets/snackbar.dart';
 
 class Player {
-  static final AudioPlayer player = AudioPlayer();
+  static TarneemnaAudioHandler? _audioHandler;
+
+  static TarneemnaAudioHandler get audioHandler {
+    _audioHandler ??= TarneemnaAudioHandler();
+    return _audioHandler!;
+  }
+
+  static set audioHandler(TarneemnaAudioHandler handler) {
+    _audioHandler = handler;
+  }
+
+  static AudioPlayer get player => audioHandler.player;
+
   static final RxString currentSongTitle = "".obs;
   static final RxString currentSongId = "".obs;
   static final RxBool isPlaying = false.obs;
@@ -17,89 +27,35 @@ class Player {
   static Hymn? currentHymn;
   static bool _initialized = false;
 
-  static void init() {
+  static void init([TarneemnaAudioHandler? handler]) {
+    if (handler != null) {
+      _audioHandler = handler;
+    }
     if (_initialized) return;
     _initialized = true;
 
-    player.playerStateStream.listen((state) {
-      final bool playing = state.playing;
-      final ProcessingState processingState = state.processingState;
-
-      isBuffering.value = processingState == ProcessingState.buffering ||
-          processingState == ProcessingState.loading;
-
-      if (processingState == ProcessingState.completed) {
-        isPlaying.value = false;
-      } else {
-        isPlaying.value = playing;
-      }
-    }, onError: (Object e) {
-      if (kDebugMode) print("Player state stream error: $e");
-      isPlaying.value = false;
-      isBuffering.value = false;
+    audioHandler.playbackState.listen((state) {
+      isPlaying.value = state.playing;
+      isBuffering.value = state.processingState == AudioProcessingState.buffering ||
+          state.processingState == AudioProcessingState.loading;
     });
 
-    player.playbackEventStream.listen(
-      (event) {},
-      onError: (Object e, StackTrace st) {
-        if (kDebugMode) print("Playback error: $e");
-        isPlaying.value = false;
-        isBuffering.value = false;
-      },
-    );
+    audioHandler.mediaItem.listen((item) {
+      if (item != null) {
+        currentSongTitle.value = item.title;
+        currentSongId.value = item.id;
+        currentHymn = TarneemnaAudioHandler.mediaItemToHymn(item);
+      } else {
+        currentSongTitle.value = "";
+        currentSongId.value = "";
+        currentHymn = null;
+      }
+    });
   }
 
   static Future<void> playHymn(Hymn hymn) async {
     init();
-
-    if (currentSongId.value == hymn.id && player.audioSource != null) {
-      if (isPlaying.value) {
-        pause();
-      } else {
-        play();
-      }
-      return;
-    }
-
-    currentSongTitle.value = hymn.title;
-    currentSongId.value = hymn.id;
-    currentHymn = hymn;
-    isBuffering.value = true;
-    isPlaying.value = false;
-
-    String? url = hymn.audioUrl;
-    if (url == null || url.isEmpty) {
-      if (hymn.source == HymnSource.taranimar) {
-        url = 'https://taranimarabia.org/music/${hymn.id}.mp3';
-      } else {
-        url = await YouTubeAudioResolver.getAudioUrl(hymn.id);
-      }
-    }
-
-    if (url == null || url.isEmpty) {
-      isBuffering.value = false;
-      showCustomSnackbar(
-        "خطأ",
-        "تعذر استخراج رابط الصوت للتشغيل",
-        Icons.error_outline,
-      );
-      return;
-    }
-
-    try {
-      await player.stop();
-      await player.setUrl(url);
-      await player.play();
-    } catch (e) {
-      if (kDebugMode) print("Error playing audio: $e");
-      isBuffering.value = false;
-      isPlaying.value = false;
-      showCustomSnackbar(
-        "خطأ",
-        "تعذر تشغيل هذه الترنيمة في الوقت الحالي",
-        Icons.error_outline,
-      );
-    }
+    await audioHandler.playHymn(hymn);
   }
 
   static Future<void> playTarnemma(Tarnemma song) async {
@@ -108,29 +64,19 @@ class Player {
 
   static void play() {
     init();
-    if (player.audioSource != null) {
-      player.play();
-    }
+    audioHandler.play();
   }
 
   static void pause() {
-    player.pause();
+    audioHandler.pause();
   }
 
   static void stop() {
-    player.stop();
-    isPlaying.value = false;
-    isBuffering.value = false;
+    audioHandler.stop();
   }
 
   static void seekTo(Duration position) {
-    if (position < Duration.zero) {
-      player.seek(Duration.zero);
-    } else if (player.duration != null && position > player.duration!) {
-      player.seek(player.duration!);
-    } else {
-      player.seek(position);
-    }
+    audioHandler.seek(position);
   }
 
   static void back5() {

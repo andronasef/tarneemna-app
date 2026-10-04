@@ -1,12 +1,10 @@
 name: tarneemna
-description: ترانيمنا تطبيق ترانيم بدون انترنت
-
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
-
-version: 2.0.0+3
+description: "Tarneemna App"
+publish_to: "none"
+version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -14,7 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  cupertino_icons: ^1.0.6
+  cupertino_icons: ^1.0.2
   get: ^4.6.6
   flutter_riverpod: ^2.5.1
   go_router: ^14.2.0
@@ -23,6 +21,8 @@ dependencies:
   http: ^1.2.1
   youtube_explode_dart: ^3.1.0
   just_audio: ^0.9.36
+  audio_service: ^0.18.12
+  audio_session: ^0.1.21
   rxdart: ^0.27.7
   flutter_downloader: ^1.11.5
   permission_handler: ^11.4.0
@@ -44,12 +44,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: # flutter pub run flutter_launcher_icons:main
-
-  flutter_lints: ^3.0.1
+  flutter_lints: ^3.0.0
+  http_mock_adapter: ^0.6.1
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/md/
+    - assets/
+    - massets/
