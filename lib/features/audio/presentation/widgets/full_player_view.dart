@@ -5,9 +5,10 @@ import 'package:tarneemna/features/audio/data/sources/tarneemna_audio_handler.da
 import 'package:tarneemna/features/audio/domain/services/ab_repeat_controller.dart';
 import 'package:tarneemna/features/audio/domain/services/sleep_timer_service.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
+import 'package:tarneemna/features/library/presentation/providers/library_providers.dart';
 import 'package:tarneemna/features/lyrics/presentation/widgets/lyrics_bottom_sheet.dart';
-import 'package:tarneemna/features/lyrics/presentation/widgets/sheet_music_modal.dart';
 import 'package:tarneemna/features/lyrics/presentation/widgets/quote_card_dialog.dart';
+import 'package:tarneemna/features/lyrics/presentation/widgets/sheet_music_modal.dart';
 
 class FullPlayerView extends ConsumerWidget {
   final VoidCallback? onCollapse;
@@ -23,50 +24,53 @@ class FullPlayerView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audioHandler = ref.watch(audioHandlerProvider);
-    final currentItem = ref.watch(currentMediaItemStreamProvider).asData?.value;
-    final isPlaying = ref.watch(isPlayingProvider);
-    final isBuffering = ref.watch(isBufferingProvider);
-    final position = ref.watch(audioPositionStreamProvider).asData?.value ?? Duration.zero;
-    final duration = ref.watch(audioDurationStreamProvider).asData?.value ??
-        currentItem?.duration ??
-        Duration.zero;
-    final currentHymn = ref.watch(currentHymnStreamProvider).asData?.value;
-    final sleepState = ref.watch(sleepTimerNotifierProvider);
-    final abState = ref.watch(abRepeatNotifierProvider);
+    final mediaItemAsync = ref.watch(currentMediaItemStreamProvider);
+    final playbackStateAsync = ref.watch(playbackStateStreamProvider);
+    final positionAsync = ref.watch(audioPositionStreamProvider);
+
+    final currentItem = mediaItemAsync.value;
+    final playbackState = playbackStateAsync.value;
+    final currentPosition = positionAsync.value ?? Duration.zero;
 
     if (currentItem == null) {
-      return const SizedBox.shrink();
+      return const Scaffold(
+        body: Center(child: Text('لا توجد ترنيمة قيد التشغيل حالياً')),
+      );
     }
 
-    final double maxSec = duration.inSeconds.toDouble();
-    final double currentSec = position.inSeconds.toDouble().clamp(0.0, maxSec > 0 ? maxSec : 1.0);
+    final totalDuration = currentItem.duration ?? Duration.zero;
+    final isPlaying = playbackState?.playing ?? false;
+    final maxSec = totalDuration.inSeconds.toDouble();
+    final currentSec = currentPosition.inSeconds.toDouble().clamp(0.0, maxSec > 0 ? maxSec : 1.0);
+    final isFavorite = ref.watch(isFavoriteProvider(currentItem.id));
+    final currentHymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Material(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: SafeArea(
+      child: Scaffold(
+        body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
             child: Column(
               children: [
-                // Top Bar
+                // Top App Bar
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 30),
-                      onPressed: onCollapse,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+                      tooltip: 'تصغير المشغل',
+                      onPressed: onCollapse ?? () => Navigator.of(context).maybePop(),
                     ),
                     Text(
-                      currentItem.album ?? 'ترانيمنا',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w600,
+                      'المشغل الموسيقي',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.more_vert),
+                      icon: const Icon(Icons.speed_rounded),
+                      tooltip: 'سرعة التشغيل',
                       onPressed: () => _showSpeedSelector(context, audioHandler),
                     ),
                   ],
@@ -106,33 +110,53 @@ class FullPlayerView extends ConsumerWidget {
                 ),
                 const Spacer(flex: 1),
 
-                // Title & Artist
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        currentItem.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                            ),
+                // Title, Artist, Favorite & Playlist Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentItem.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            currentItem.artist ?? 'ترانيم عربية',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        currentItem.artist ?? 'ترانيم عربية',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[400],
-                              fontSize: 16,
-                            ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : null,
+                        size: 28,
                       ),
-                    ],
-                  ),
+                      tooltip: isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
+                      onPressed: () async {
+                        await ref.read(favoritesListProvider.notifier).toggleFavorite(currentHymn);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.playlist_add, size: 28),
+                      tooltip: 'إضافة لقائمة تشغيل',
+                      onPressed: () => _showAddToPlaylistDialog(context, ref, currentItem),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
@@ -153,164 +177,144 @@ class FullPlayerView extends ConsumerWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _formatDuration(position),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        _formatDuration(currentPosition),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        _formatDuration(duration),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        _formatDuration(totalDuration),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const Spacer(flex: 1),
 
                 // Main Playback Controls
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    // Shuffle
                     IconButton(
-                      icon: const Icon(Icons.shuffle, size: 24),
+                      icon: Icon(
+                        Icons.shuffle_rounded,
+                        color: playbackState?.shuffleMode == AudioServiceShuffleMode.all
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey,
+                      ),
                       onPressed: () {
-                        // Toggle shuffle
-                        final state = ref.read(playbackStateStreamProvider).asData?.value;
-                        final isShuffled = state?.shuffleMode == AudioServiceShuffleMode.all;
-                        audioHandler.setShuffleMode(isShuffled
+                        final next = playbackState?.shuffleMode == AudioServiceShuffleMode.all
                             ? AudioServiceShuffleMode.none
-                            : AudioServiceShuffleMode.all);
+                            : AudioServiceShuffleMode.all;
+                        audioHandler.setShuffleMode(next);
                       },
                     ),
+                    // Skip Previous
                     IconButton(
                       icon: const Icon(Icons.skip_previous_rounded, size: 36),
                       onPressed: () => audioHandler.skipToPrevious(),
                     ),
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: isBuffering
-                            ? const SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 3,
-                                ),
-                              )
-                            : IconButton(
-                                icon: Icon(
-                                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                  color: Colors.white,
-                                  size: 38,
-                                ),
-                                onPressed: () {
-                                  if (isPlaying) {
-                                    audioHandler.pause();
-                                  } else {
-                                    audioHandler.play();
-                                  }
-                                },
-                              ),
+                    // Play / Pause FAB
+                    FloatingActionButton.large(
+                      elevation: 4,
+                      onPressed: () {
+                        if (isPlaying) {
+                          audioHandler.pause();
+                        } else {
+                          audioHandler.play();
+                        }
+                      },
+                      child: Icon(
+                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        size: 42,
                       ),
                     ),
+                    // Skip Next
                     IconButton(
                       icon: const Icon(Icons.skip_next_rounded, size: 36),
                       onPressed: () => audioHandler.skipToNext(),
                     ),
+                    // Repeat Mode
                     IconButton(
-                      icon: const Icon(Icons.repeat_rounded, size: 24),
+                      icon: Icon(
+                        playbackState?.repeatMode == AudioServiceRepeatMode.one
+                            ? Icons.repeat_one_rounded
+                            : Icons.repeat_rounded,
+                        color: playbackState?.repeatMode != AudioServiceRepeatMode.none
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey,
+                      ),
                       onPressed: () {
-                        // Toggle repeat
-                        final state = ref.read(playbackStateStreamProvider).asData?.value;
-                        final currentRepeat = state?.repeatMode ?? AudioServiceRepeatMode.none;
-                        final nextRepeat = switch (currentRepeat) {
-                          AudioServiceRepeatMode.none => AudioServiceRepeatMode.all,
-                          AudioServiceRepeatMode.all => AudioServiceRepeatMode.one,
-                          _ => AudioServiceRepeatMode.none,
-                        };
-                        audioHandler.setRepeatMode(nextRepeat);
+                        final mode = playbackState?.repeatMode;
+                        final next = mode == AudioServiceRepeatMode.none
+                            ? AudioServiceRepeatMode.all
+                            : mode == AudioServiceRepeatMode.all
+                                ? AudioServiceRepeatMode.one
+                                : AudioServiceRepeatMode.none;
+                        audioHandler.setRepeatMode(next);
                       },
                     ),
                   ],
                 ),
                 const Spacer(flex: 1),
 
-                // Utility Toolbar
+                // Secondary Tools Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     // Sleep Timer
                     IconButton(
-                      icon: Icon(
-                        Icons.bedtime_outlined,
-                        color: sleepState.isActive ? Colors.amber : Colors.grey,
-                      ),
+                      icon: const Icon(Icons.bedtime_outlined),
                       tooltip: 'مؤقت النوم',
-                      onPressed: () => _showSleepTimerDialog(context, ref),
+                      onPressed: () => _showSleepTimerSheet(context, ref),
                     ),
-                    // A-B Repeat Loop
+                    // A-B Repeat
                     IconButton(
-                      icon: Icon(
-                        Icons.repeat_one_on_outlined,
-                        color: abState.isActive ? Colors.greenAccent : Colors.grey,
-                      ),
+                      icon: const Icon(Icons.loop_rounded),
                       tooltip: 'تكرار مقطع (A-B)',
-                      onPressed: () => _showAbRepeatDialog(context, ref, position),
+                      onPressed: () => _showAbRepeatDialog(context, ref, currentPosition),
                     ),
-                    // Lyrics Viewer
+                    // Interactive Lyrics
                     IconButton(
-                      icon: const Icon(Icons.lyrics_outlined, color: Colors.grey),
-                      tooltip: 'الكلمات',
+                      icon: const Icon(Icons.lyrics_outlined),
+                      tooltip: 'كلمات الترنيمة',
                       onPressed: () {
-                        if (currentHymn != null) {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => LyricsBottomSheet(hymn: currentHymn),
-                          );
-                        }
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (_) => LyricsBottomSheet(hymn: currentHymn),
+                        );
                       },
                     ),
-                    // Sheet Music & Chords
+                    // Sheet Music / Chords
                     IconButton(
-                      icon: const Icon(Icons.music_note_outlined, color: Colors.grey),
-                      tooltip: 'نوتة وكوردات',
+                      icon: const Icon(Icons.music_note_outlined),
+                      tooltip: 'النوتة الموسيقية والكوردات',
                       onPressed: () {
-                        if (currentHymn != null) {
-                          showModalBottomSheet(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => SheetMusicModal(hymn: currentHymn),
-                          );
-                        }
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (_) => SheetMusicModal(hymn: currentHymn),
+                        );
                       },
                     ),
                     // Quote Card Generator
                     IconButton(
-                      icon: const Icon(Icons.format_quote_outlined, color: Colors.grey),
-                      tooltip: 'مشاركة كبطاقة صورة',
+                      icon: const Icon(Icons.format_quote_rounded),
+                      tooltip: 'بطاقة اقتباس',
                       onPressed: () {
-                        if (currentHymn != null) {
-                          showDialog(
-                            context: context,
-                            builder: (_) => QuoteCardDialog(hymn: currentHymn),
-                          );
-                        }
+                        showDialog(
+                          context: context,
+                          builder: (_) => QuoteCardDialog(hymn: currentHymn),
+                        );
                       },
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -319,107 +323,9 @@ class FullPlayerView extends ConsumerWidget {
     );
   }
 
-  void _showSpeedSelector(BuildContext context, TarneemnaAudioHandler audioHandler) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('سرعة التشغيل', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ),
-              for (final speed in [0.75, 1.0, 1.25, 1.5, 2.0])
-                ListTile(
-                  title: Text('${speed}x'),
-                  trailing: (audioHandler.player.speed == speed) ? const Icon(Icons.check) : null,
-                  onTap: () {
-                    audioHandler.setSpeed(speed);
-                    Navigator.pop(ctx);
-                  },
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSleepTimerDialog(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(sleepTimerNotifierProvider.notifier);
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('مؤقت النوم', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.timer_10),
-                title: const Text('15 دقيقة'),
-                onTap: () {
-                  notifier.setTimerMinutes(15);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.timer_3),
-                title: const Text('30 دقيقة'),
-                onTap: () {
-                  notifier.setTimerMinutes(30);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.timer),
-                title: const Text('45 دقيقة'),
-                onTap: () {
-                  notifier.setTimerMinutes(45);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.timer),
-                title: const Text('60 دقيقة'),
-                onTap: () {
-                  notifier.setTimerMinutes(60);
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.music_off),
-                title: const Text('عند نهاية الترنيمة الحالية'),
-                onTap: () {
-                  notifier.setEndOfTrack();
-                  Navigator.pop(ctx);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel_outlined, color: Colors.red),
-                title: const Text('إيقاف المؤقت', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  notifier.cancelTimer();
-                  Navigator.pop(ctx);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAbRepeatDialog(BuildContext context, WidgetRef ref, Duration position) {
-    final abState = ref.read(abRepeatNotifierProvider);
-    final notifier = ref.read(abRepeatNotifierProvider.notifier);
+  void _showAddToPlaylistDialog(BuildContext context, WidgetRef ref, MediaItem currentItem) {
+    final playlists = ref.read(playlistsListProvider);
+    final hymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
 
     showModalBottomSheet(
       context: context,
@@ -427,50 +333,225 @@ class FullPlayerView extends ConsumerWidget {
         textDirection: TextDirection.rtl,
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('تكرار مقطع (A-B)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 12),
-                Text(
-                  'النقطة A: ${abState.pointA != null ? _formatDuration(abState.pointA!) : "غير محددة"}\n'
-                  'النقطة B: ${abState.pointB != null ? _formatDuration(abState.pointB!) : "غير محددة"}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
+                const Text(
+                  'إضافة الترنيمة إلى قائمة تشغيل',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                if (playlists.isEmpty) ...[
+                  const Text('لا توجد لديك قوائم تشغيل حالياً.', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('إنشاء قائمة تشغيل جديدة'),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showNewPlaylistDialog(context, ref, hymn);
+                    },
+                  ),
+                ] else ...[
+                  ...playlists.map(
+                    (p) => ListTile(
+                      leading: const Icon(Icons.queue_music),
+                      title: Text(p.name),
+                      subtitle: Text('${p.hymns.length} ترنيمة'),
+                      onTap: () async {
+                        await ref.read(playlistsListProvider.notifier).addHymn(p.id, hymn);
+                        if (context.mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('تمت الإضافة إلى «${p.name}»')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNewPlaylistDialog(BuildContext context, WidgetRef ref, dynamic hymn) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('إنشاء قائمة تشغيل جديدة'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'اسم القائمة'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: () async {
+                final name = controller.text.trim();
+                if (name.isNotEmpty) {
+                  Navigator.pop(ctx);
+                  final playlist = await ref.read(playlistsListProvider.notifier).createPlaylist(name);
+                  await ref.read(playlistsListProvider.notifier).addHymn(playlist.id, hymn);
+                }
+              },
+              child: const Text('إنشاء وإضافة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSpeedSelector(BuildContext context, dynamic audioHandler) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('سرعة التشغيل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              ...[0.75, 1.0, 1.25, 1.5, 2.0].map(
+                (speed) => ListTile(
+                  title: Text('${speed}x', textAlign: TextAlign.center),
+                  onTap: () {
+                    audioHandler.setSpeed(speed);
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSleepTimerSheet(BuildContext context, WidgetRef ref) {
+    final timerState = ref.watch(sleepTimerNotifierProvider);
+    final notifier = ref.read(sleepTimerNotifierProvider.notifier);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        notifier.setPointA(position);
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('تحديد A هنا'),
-                    ),
-                    ElevatedButton(
-                      onPressed: abState.hasPointA
-                          ? () {
-                              notifier.setPointB(position);
-                              Navigator.pop(ctx);
-                            }
-                          : null,
-                      child: const Text('تحديد B هنا'),
-                    ),
-                    OutlinedButton(
-                      onPressed: () {
-                        notifier.clear();
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('مسح'),
-                    ),
+                    const Text('مؤقت النوم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    if (timerState.isActive)
+                      TextButton(
+                        onPressed: () {
+                          notifier.cancelTimer();
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('إلغاء المؤقت', style: TextStyle(color: Colors.red)),
+                      ),
                   ],
+                ),
+                if (timerState.isActive && timerState.remainingTime != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'المتبقي: ${timerState.remainingTime!.inMinutes}:${(timerState.remainingTime!.inSeconds % 60).toString().padLeft(2, '0')}',
+                      style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [15, 30, 45, 60].map((minutes) {
+                    return ChoiceChip(
+                      label: Text('$minutes دقيقة'),
+                      selected: timerState.initialMinutes == minutes,
+                      onSelected: (selected) {
+                        if (selected) {
+                          notifier.setTimerMinutes(minutes);
+                          Navigator.pop(ctx);
+                        }
+                      },
+                    );
+                  }).toList(),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showAbRepeatDialog(BuildContext context, WidgetRef ref, Duration currentPos) {
+    final abState = ref.watch(abRepeatNotifierProvider);
+    final abNotifier = ref.read(abRepeatNotifierProvider.notifier);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('تكرار مقطع (A-B)'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'نقطة البداية (A): ${abState.pointA != null ? _formatDuration(abState.pointA!) : "غير محددة"}',
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'نقطة النهاية (B): ${abState.pointB != null ? _formatDuration(abState.pointB!) : "غير محددة"}',
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => abNotifier.setPointA(currentPos),
+                    child: const Text('تحديد A'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => abNotifier.setPointB(currentPos),
+                    child: const Text('تحديد B'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                abNotifier.clear();
+                Navigator.pop(ctx);
+              },
+              child: const Text('إلغاء التكرار'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('إغلاق'),
+            ),
+          ],
         ),
       ),
     );

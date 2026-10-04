@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
 import '../../tarnemma.dart';
 import '../../widgets/snackbar.dart';
@@ -13,6 +14,7 @@ class HomeController extends GetxController {
   final RxString songTextObs = "".obs;
   final RxBool loading = false.obs;
   Timer? _debounceTimer;
+  final SearchHistoryService _searchHistoryService = SearchHistoryService();
 
   @override
   void onInit() {
@@ -63,6 +65,8 @@ class HomeController extends GetxController {
     loading.value = true;
     try {
       if (kDebugMode) print("Querying YouTube for: $queryText");
+      // Record query in search history
+      _searchHistoryService.addQuery(queryText);
       final results = await Tarnemma.search(queryText);
       if (kDebugMode) print("Results received: ${results.length}");
       traneem.assignAll(results);

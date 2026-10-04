@@ -5,6 +5,9 @@ import 'package:tarneemna/features/albums/presentation/screens/albums_screen.dar
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/storage_manager_screen.dart';
+import 'package:tarneemna/features/library/presentation/screens/favorites_screen.dart';
+import 'package:tarneemna/features/library/presentation/screens/history_screen.dart';
+import 'package:tarneemna/features/library/presentation/screens/playlists_screen.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singer_detail_screen.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singers_screen.dart';
 import 'package:tarneemna/features/taranim_arabia/presentation/providers/taranim_arabia_providers.dart';
@@ -22,35 +25,66 @@ class DiscoveryHeaderSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Quick Action Chips (Offline Downloads & Storage)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
+        // Quick Action Chips (Personal Library & Downloads)
+        SizedBox(
+          height: 52,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
             children: [
-              Expanded(
-                child: ActionChip(
-                  avatar: const Icon(Icons.cloud_download, color: Colors.blueAccent),
-                  label: const Text('الترانيم المحملة'),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const OfflineDownloadsScreen()),
-                    );
-                  },
-                ),
+              ActionChip(
+                avatar: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
+                label: const Text('المفضلة'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                  );
+                },
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: ActionChip(
-                  avatar: const Icon(Icons.storage, color: Colors.amber),
-                  label: const Text('إدارة التخزين'),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const StorageManagerScreen()),
-                    );
-                  },
-                ),
+              ActionChip(
+                avatar: const Icon(Icons.queue_music, color: Colors.deepPurpleAccent, size: 18),
+                label: const Text('قوائم التشغيل'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PlaylistsScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              ActionChip(
+                avatar: const Icon(Icons.history, color: Colors.teal, size: 18),
+                label: const Text('سجل الاستماع'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              ActionChip(
+                avatar: const Icon(Icons.cloud_download, color: Colors.blueAccent, size: 18),
+                label: const Text('الترانيم المحملة'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OfflineDownloadsScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              ActionChip(
+                avatar: const Icon(Icons.storage, color: Colors.amber, size: 18),
+                label: const Text('إدارة التخزين'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StorageManagerScreen()),
+                  );
+                },
               ),
             ],
           ),

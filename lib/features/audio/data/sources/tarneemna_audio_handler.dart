@@ -6,11 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
+import 'package:tarneemna/features/library/data/sources/personal_library_service.dart';
 import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 
 class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
   final OfflineStorageService? _offlineStorageService;
+  final PersonalLibraryService? _personalLibraryService;
   int _currentIndex = -1;
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _playbackEventSubscription;
@@ -21,8 +23,10 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   TarneemnaAudioHandler({
     AudioPlayer? player,
     OfflineStorageService? offlineStorageService,
+    PersonalLibraryService? personalLibraryService,
   })  : _player = player ?? AudioPlayer(),
-        _offlineStorageService = offlineStorageService {
+        _offlineStorageService = offlineStorageService,
+        _personalLibraryService = personalLibraryService {
     _init();
   }
 
@@ -181,6 +185,20 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     queue.add(list);
   }
 
+  Future<void> addToQueue(Hymn hymn) async {
+    await addQueueItem(hymnToMediaItem(hymn));
+  }
+
+  Future<void> playNext(Hymn hymn) async {
+    final item = hymnToMediaItem(hymn);
+    final list = List<MediaItem>.from(queue.value);
+    final insertIndex = (_currentIndex >= 0 && _currentIndex < list.length)
+        ? _currentIndex + 1
+        : list.length;
+    list.insert(insertIndex, item);
+    queue.add(list);
+  }
+
   @override
   Future<void> removeQueueItemAt(int index) async {
     final list = List<MediaItem>.from(queue.value);
@@ -203,6 +221,8 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  Future<void> removeFromQueue(int index) => removeQueueItemAt(index);
+
   Future<void> moveQueueItem(int oldIndex, int newIndex) async {
     final list = List<MediaItem>.from(queue.value);
     if (oldIndex < 0 || oldIndex >= list.length || newIndex < 0 || newIndex >= list.length) return;
@@ -221,6 +241,8 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     queue.add(list);
   }
 
+  Future<void> reorderQueue(int oldIndex, int newIndex) => moveQueueItem(oldIndex, newIndex);
+
   @override
   Future<void> skipToQueueItem(int index) async {
     final list = queue.value;
@@ -229,6 +251,9 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     _currentIndex = index;
     final item = list[index];
     mediaItem.add(item);
+
+    // Record playback history
+    _personalLibraryService?.recordPlayback(mediaItemToHymn(item));
 
     // 1. Check for offline local file
     final storage = _offlineStorageService;

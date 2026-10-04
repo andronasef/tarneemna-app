@@ -15,6 +15,10 @@ import 'features/audio/presentation/providers/audio_providers.dart';
 import 'features/downloads/data/sources/offline_storage_service.dart';
 import 'features/downloads/presentation/providers/download_providers.dart';
 import 'features/hymns/data/sources/local_hymn_cache.dart';
+import 'features/library/data/sources/personal_library_service.dart';
+import 'features/library/presentation/providers/library_providers.dart';
+import 'features/search/data/sources/search_history_service.dart';
+import 'features/search/presentation/providers/search_providers.dart';
 import 'firebase_options.dart';
 import 'player.dart';
 import 'tarnemma.dart';
@@ -33,9 +37,18 @@ Future<void> main(List<String> args) async {
   final offlineStorageService = OfflineStorageService();
   await offlineStorageService.init();
 
+  final personalLibraryService = PersonalLibraryService();
+  await personalLibraryService.init();
+
+  final searchHistoryService = SearchHistoryService();
+  await searchHistoryService.init();
+
   // Initialize Audio Service for background playback
   final audioHandler = await AudioService.init(
-    builder: () => TarneemnaAudioHandler(offlineStorageService: offlineStorageService),
+    builder: () => TarneemnaAudioHandler(
+      offlineStorageService: offlineStorageService,
+      personalLibraryService: personalLibraryService,
+    ),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.increase.tarneemna.audio',
       androidNotificationChannelName: 'تشغيل الترانيم',
@@ -59,6 +72,8 @@ Future<void> main(List<String> args) async {
       overrides: [
         localHymnCacheProvider.overrideWithValue(localHymnCache),
         offlineStorageServiceProvider.overrideWithValue(offlineStorageService),
+        personalLibraryServiceProvider.overrideWithValue(personalLibraryService),
+        searchHistoryServiceProvider.overrideWithValue(searchHistoryService),
         audioHandlerProvider.overrideWithValue(audioHandler),
       ],
       child: const App(),

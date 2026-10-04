@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/features/discovery/presentation/widgets/discovery_header_section.dart';
+import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
 import '../../../player.dart';
 import '../../../tarnemma.dart';
@@ -43,6 +44,9 @@ class TraneemList extends StatelessWidget {
           "يا صاحب الحنان",
         ];
 
+        final searchHistoryService = SearchHistoryService();
+        final recentQueries = searchHistoryService.getQueries();
+
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 90),
           child: Column(
@@ -50,6 +54,45 @@ class TraneemList extends StatelessWidget {
             children: [
               const DiscoveryHeaderSection(),
               const SizedBox(height: 10),
+              if (recentQueries.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "عمليات البحث الأخيرة:",
+                            style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              await searchHistoryService.clearAll();
+                              controller.update();
+                            },
+                            child: const Text('مسح', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: recentQueries.take(6).map((q) {
+                          return ActionChip(
+                            label: Text(q),
+                            avatar: const Icon(Icons.history, size: 16, color: Colors.grey),
+                            onPressed: () => controller.query(q),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
