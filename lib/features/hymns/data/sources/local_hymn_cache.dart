@@ -45,15 +45,6 @@ class LocalHymnCache {
     }
   }
 
-  List<Hymn> getCachedHymns() {
-    final List<Hymn> results = [];
-    for (final key in box.keys) {
-      final hymn = getHymn(key.toString());
-      if (hymn != null) results.add(hymn);
-    }
-    return results;
-  }
-
   Future<void> deleteHymn(String id) async {
     await box.delete(id);
   }

@@ -254,9 +254,37 @@ class TaranimArabiaRemoteDataSource {
   }
 
   /// 4. Get songs by singer
-  Future<List<Hymn>> getSingerSongs(String singerId) async {
-    final doc = await _getHtml('/singer/$singerId');
-    return _parse(doc, parseSearchResults);
+  Future<List<Hymn>> getSingerSongs(String singerId) =>
+      _getAllPages('/singer/$singerId');
+
+  /// The site serves ~10 songs per page; walk `?page=N` until one comes back
+  /// empty or adds nothing new (guards against a repeated last page).
+  /// Pages are fetched [batch] at a time; overshooting the end costs a few requests.
+  Future<List<Hymn>> _getAllPages(String path, {int batch = 5}) async {
+    final byId = <String, Hymn>{};
+    for (var start = 1; start <= 200; start += batch) {
+      final pages = await Future.wait([
+        for (var page = start; page < start + batch; page++) _getPage(path, page),
+      ]);
+      for (final songs in pages) {
+        final before = byId.length;
+        for (final s in songs) {
+          byId.putIfAbsent(s.id, () => s);
+        }
+        if (byId.length == before) return byId.values.toList();
+      }
+    }
+    return byId.values.toList();
+  }
+
+  Future<List<Hymn>> _getPage(String path, int page) async {
+    try {
+      final doc = await _getHtml(page > 1 ? '$path?page=$page' : path);
+      return await _parse(doc, parseSearchResults);
+    } catch (_) {
+      if (page == 1) rethrow; // a missing later page just means we're past the end
+      return const [];
+    }
   }
 
   /// 5. Browse albums directory

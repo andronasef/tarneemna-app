@@ -31,10 +31,12 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           height: 52,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
             children: [
               ActionChip(
-                avatar: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
+                avatar: const Icon(Icons.favorite,
+                    color: Colors.redAccent, size: 18),
                 label: const Text('المفضلة'),
                 onPressed: () {
                   Navigator.push(
@@ -45,7 +47,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               ActionChip(
-                avatar: const Icon(Icons.queue_music, color: Colors.deepPurpleAccent, size: 18),
+                avatar: const Icon(Icons.queue_music,
+                    color: Colors.deepPurpleAccent, size: 18),
                 label: const Text('قوائم التشغيل'),
                 onPressed: () {
                   Navigator.push(
@@ -67,34 +70,40 @@ class DiscoveryHeaderSection extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               ActionChip(
-                avatar: const Icon(Icons.cloud_download, color: Colors.blueAccent, size: 18),
+                avatar: const Icon(Icons.cloud_download,
+                    color: Colors.blueAccent, size: 18),
                 label: const Text('الترانيم المحملة'),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const OfflineDownloadsScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const OfflineDownloadsScreen()),
                   );
                 },
               ),
               const SizedBox(width: 8),
               ActionChip(
-                avatar: const Icon(Icons.storage, color: Colors.amber, size: 18),
+                avatar:
+                    const Icon(Icons.storage, color: Colors.amber, size: 18),
                 label: const Text('إدارة التخزين'),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const StorageManagerScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const StorageManagerScreen()),
                   );
                 },
               ),
               const SizedBox(width: 8),
               ActionChip(
-                avatar: const Icon(Icons.palette_outlined, color: Colors.indigoAccent, size: 18),
+                avatar: const Icon(Icons.palette_outlined,
+                    color: Colors.indigoAccent, size: 18),
                 label: const Text('المظهر والإعدادات'),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ModernSettingsScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const ModernSettingsScreen()),
                   );
                 },
               ),
@@ -108,7 +117,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           error: (_, __) => const SizedBox.shrink(),
           data: (hymn) {
             if (hymn == null) return const SizedBox.shrink();
-            final hasArtwork = hymn.artworkUrl != null && hymn.artworkUrl!.trim().isNotEmpty;
+            final hasArtwork =
+                hymn.artworkUrl != null && hymn.artworkUrl!.trim().isNotEmpty;
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               padding: const EdgeInsets.all(16),
@@ -120,7 +130,10 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
+                  BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 4)),
                 ],
               ),
               child: Row(
@@ -138,7 +151,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                             hymn.artworkUrl!,
                             fit: BoxFit.cover,
                             gaplessPlayback: true,
-                            errorBuilder: (_, __, ___) => _buildMusicNotePlaceholder(),
+                            errorBuilder: (_, __, ___) =>
+                                _buildMusicNotePlaceholder(),
                           )
                         : _buildMusicNotePlaceholder(),
                   ),
@@ -149,10 +163,11 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              'ترنيمة اليوم',
+                              "ترنيمة مختارة",
                               style: TextStyle(
                                 color: Colors.amber[200],
                                 fontSize: 12,
@@ -177,7 +192,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                             hymn.singer!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 13),
                           ),
                       ],
                     ),
@@ -198,25 +214,28 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           error: (_, __) => const SizedBox.shrink(),
           data: (singers) {
             if (singers.isEmpty) return const SizedBox.shrink();
-            final topSingers = singers.take(10).toList();
+            final topSingers = singers;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'أبرز المرنمين وفرق التسبيح',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SingersScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const SingersScreen()),
                           );
                         },
                         child: const Text('عرض الكل'),
@@ -251,7 +270,9 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 28,
-                                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
                                 child: const Icon(Icons.person, size: 30),
                               ),
                               const SizedBox(height: 6),
@@ -260,7 +281,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -285,19 +307,22 @@ class DiscoveryHeaderSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'تصفح الألبومات',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const AlbumsScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const AlbumsScreen()),
                           );
                         },
                         child: const Text('عرض الكل'),
@@ -313,7 +338,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                     itemCount: displayedAlbums.length,
                     itemBuilder: (ctx, idx) {
                       final album = displayedAlbums[idx];
-                      final hasAlbumImage = album.imageUrl != null && album.imageUrl!.trim().isNotEmpty;
+                      final hasAlbumImage = album.imageUrl != null &&
+                          album.imageUrl!.trim().isNotEmpty;
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -340,7 +366,10 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: const [
-                                    BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+                                    BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2)),
                                   ],
                                 ),
                                 clipBehavior: Clip.antiAlias,
@@ -350,7 +379,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                         fit: BoxFit.cover,
                                         cacheWidth: 200,
                                         cacheHeight: 200,
-                                        errorBuilder: (_, __, ___) => _buildAlbumMusicNotePlaceholder(),
+                                        errorBuilder: (_, __, ___) =>
+                                            _buildAlbumMusicNotePlaceholder(),
                                       )
                                     : _buildAlbumMusicNotePlaceholder(),
                               ),
@@ -359,14 +389,16 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                 album.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold),
                               ),
                               if (album.singerName != null)
                                 Text(
                                   album.singerName!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                  style: const TextStyle(
+                                      fontSize: 10, color: Colors.grey),
                                 ),
                             ],
                           ),

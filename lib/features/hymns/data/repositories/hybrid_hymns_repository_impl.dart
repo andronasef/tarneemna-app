@@ -63,8 +63,10 @@ class HybridHymnsRepositoryImpl implements HybridHymnsRepository {
     for (final hymn in youtubeResults) {
       final norm = normalizeTitle(hymn.title);
       // Check if title is already represented by a Taranim Arabia track
-      final alreadyPresent = seenNormalizedTitles.any((seen) =>
-          norm.contains(seen) || seen.contains(norm) && seen.length > 4);
+      // Both sides must be long enough, or a short title like "يا" matches everything.
+      final alreadyPresent = norm.length > 4 &&
+          seenNormalizedTitles.any((seen) =>
+              seen.length > 4 && (norm.contains(seen) || seen.contains(norm)));
 
       if (!alreadyPresent) {
         if (norm.isNotEmpty) {

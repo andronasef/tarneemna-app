@@ -55,7 +55,7 @@ final randomizedSingersProvider = FutureProvider<List<Singer>>((ref) async {
       return repo.getSingers(page: 1);
     }
     combined.shuffle(rng);
-    return combined.take(12).toList();
+    return combined;
   } catch (_) {
     return repo.getSingers(page: 1);
   }
@@ -88,6 +88,24 @@ final randomizedAlbumsProvider = FutureProvider<List<Album>>((ref) async {
     return combined.take(12).toList();
   } catch (_) {
     return repo.getAlbums(page: 1);
+  }
+});
+
+/// Search/list results lack lyrics, chords and notes; fetch them on demand.
+/// Falls back to the given hymn if it's not from Taranim Arabia or the fetch fails.
+final hymnDetailsProvider = FutureProvider.family<Hymn, Hymn>((ref, hymn) async {
+  final hasDetails = hymn.lyrics != null && hymn.lyrics!.trim().isNotEmpty;
+  if (hymn.source != HymnSource.taranimar || hasDetails) return hymn;
+  try {
+    final details = await ref.watch(taranimArabiaRepositoryProvider).getSongDetails(hymn.id);
+    // Keep what we already know (e.g. artwork from the list page).
+    return details.copyWith(
+      title: hymn.title,
+      singer: hymn.singer,
+      artworkUrl: hymn.artworkUrl ?? details.artworkUrl,
+    );
+  } catch (_) {
+    return hymn;
   }
 });
 
