@@ -17,13 +17,12 @@ import 'features/downloads/presentation/providers/download_providers.dart';
 import 'features/hymns/data/sources/local_hymn_cache.dart';
 import 'features/library/data/sources/personal_library_service.dart';
 import 'features/library/presentation/providers/library_providers.dart';
-import 'features/search/data/sources/search_history_service.dart';
-import 'features/search/presentation/providers/search_providers.dart';
 import 'features/settings/data/sources/settings_service.dart';
 import 'features/settings/presentation/providers/settings_providers.dart';
 import 'firebase_options.dart';
+import 'features/search/data/sources/search_history_service.dart';
+import 'features/youtube/data/sources/youtube_audio_resolver.dart';
 import 'player.dart';
-import 'tarnemma.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -42,8 +41,7 @@ Future<void> main(List<String> args) async {
   final personalLibraryService = PersonalLibraryService();
   await personalLibraryService.init();
 
-  final searchHistoryService = SearchHistoryService();
-  await searchHistoryService.init();
+  await SearchHistoryService().init();
 
   final settingsService = SettingsService();
   await settingsService.init();
@@ -70,7 +68,7 @@ Future<void> main(List<String> args) async {
   await FlutterDownloader.initialize(debug: kDebugMode);
 
   // YouTube JS solver boots a WebView; don't block first frame on it.
-  unawaited(initYoutubeExplode());
+  unawaited(YouTubeAudioResolver.init());
 
   runApp(
     ProviderScope(
@@ -78,7 +76,6 @@ Future<void> main(List<String> args) async {
         localHymnCacheProvider.overrideWithValue(localHymnCache),
         offlineStorageServiceProvider.overrideWithValue(offlineStorageService),
         personalLibraryServiceProvider.overrideWithValue(personalLibraryService),
-        searchHistoryServiceProvider.overrideWithValue(searchHistoryService),
         settingsServiceProvider.overrideWithValue(settingsService),
         audioHandlerProvider.overrideWithValue(audioHandler),
       ],

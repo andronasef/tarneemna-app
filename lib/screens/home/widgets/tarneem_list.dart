@@ -22,6 +22,9 @@ class TraneemList extends StatelessWidget {
     return Obx(() {
       if (controller.loading.value) {
         return const Center(
+      // Observe recentSearchTick so changes trigger a rebuild
+      final _ = controller.recentSearchTick.value;
+
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -69,10 +72,7 @@ class TraneemList extends StatelessWidget {
                             style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                           TextButton(
-                            onPressed: () async {
-                              await _searchHistoryService.clearAll();
-                              controller.update();
-                            },
+                            onPressed: () => controller.clearRecentSearches(),
                             child: const Text('مسح', style: TextStyle(fontSize: 12, color: Colors.grey)),
                           ),
                         ],
@@ -171,9 +171,7 @@ class TraneemTile extends StatelessWidget {
         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
-        tarnemma.author.isNotEmpty
-            ? "${tarnemma.author} • ${tarnemma.duration}"
-            : tarnemma.duration,
+        [tarnemma.author, tarnemma.duration].where((s) => s.isNotEmpty).join(' • '),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontSize: 11, color: Colors.grey),

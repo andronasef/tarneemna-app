@@ -12,6 +12,7 @@ import '../../tarnemma.dart';
 import '../../widgets/snackbar.dart';
 
 class HomeController extends GetxController {
+  final RxInt recentSearchTick = 0.obs;
   final RxList<Tarnemma> traneem = <Tarnemma>[].obs;
   late final TextEditingController songText;
   final RxString songTextObs = "".obs;
@@ -45,6 +46,11 @@ class HomeController extends GetxController {
     if (queryText.length >= 2) {
       _debounceTimer = Timer(const Duration(milliseconds: 600), () {
         query(queryText);
+  Future<void> clearRecentSearches() async {
+    await _searchHistoryService.clearAll();
+    recentSearchTick.value++;
+  }
+
       });
     }
   }
@@ -69,7 +75,8 @@ class HomeController extends GetxController {
     try {
       if (kDebugMode) print("Querying YouTube for: $queryText");
       // Record query in search history
-      _searchHistoryService.addQuery(queryText);
+      await _searchHistoryService.addQuery(queryText);
+      recentSearchTick.value++;
       final results = await Tarnemma.search(queryText);
       if (kDebugMode) print("Results received: ${results.length}");
       traneem.assignAll(results);

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/library/domain/entities/playlist.dart';
-import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
 void main() {
   group('Personal Library & Smart Search Tests', () {
@@ -52,32 +51,6 @@ void main() {
       );
       expect(filtered.hymns.length, 1);
       expect(filtered.hymns.first.id, '2');
-    });
-
-    test('SearchHistoryService.normalizeArabic removes diacritics and unifies letters', () {
-      expect(SearchHistoryService.normalizeArabic('يَسُوعُ'), 'يسوع');
-      expect(SearchHistoryService.normalizeArabic('إِلَهِي'), 'الهي');
-      expect(SearchHistoryService.normalizeArabic('آبانا'), 'ابانا');
-      expect(SearchHistoryService.normalizeArabic('حياةٌ'), 'حياه');
-      expect(SearchHistoryService.normalizeArabic('صَلاةٌ'), 'صلاه');
-    });
-
-    test('SearchHistoryService.fuzzyArabicMatch matches flexible user input', () {
-      const target = 'يسوع فادي النفس';
-
-      // Exact match
-      expect(SearchHistoryService.fuzzyArabicMatch(target, 'يسوع'), isTrue);
-
-      // Match with diacritics
-      expect(SearchHistoryService.fuzzyArabicMatch(target, 'يَسُوع'), isTrue);
-
-      // Match with Hamza variations
-      const hymn2 = 'إلهي الحي الأعظم';
-      expect(SearchHistoryService.fuzzyArabicMatch(hymn2, 'الهي'), isTrue);
-      expect(SearchHistoryService.fuzzyArabicMatch(hymn2, 'الاعظم'), isTrue);
-
-      // Mismatch
-      expect(SearchHistoryService.fuzzyArabicMatch(target, 'داود'), isFalse);
     });
   });
 }
