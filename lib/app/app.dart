@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/features/settings/presentation/providers/settings_providers.dart';
 
 import '../screens/home/home_screen.dart';
@@ -17,7 +18,7 @@ class App extends ConsumerWidget {
     final theme = ref.watch(activeThemeProvider);
 
     return GetMaterialApp(
-      title: 'ترانيمنا',
+      title: AppDetails.kAppName,
       home: const HomeScreen(),
       initialBinding: AppControllerBinder(),
       defaultTransition: Transition.cupertino,
@@ -33,12 +34,11 @@ class App extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       builder: (context, child) {
-        if (child == null) return const SizedBox.shrink();
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(settings.fontScale),
           ),
-          child: child,
+          child: child!,
         );
       },
     );

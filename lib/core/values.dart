@@ -1,5 +1,5 @@
 class AppDetails {
-  static const String kAppName = "ترانيمنا";
+  static const String kAppName = "تحميل ترانيم";
   static const String kAppPackageName = "com.increase.tarneemna";
   static const String kAppShortname = "tarneemna";
 }
@@ -18,7 +18,3 @@ class AppUrls {
 }
 
 // ignore: avoid_classes_with_only_static_members
-class R {
-  static const appUrls = AppUrls;
-  static const appDetails = AppDetails;
-}

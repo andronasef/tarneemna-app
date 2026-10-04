@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="horizontal"
     android:padding="12dp"
     android:gravity="center_vertical"
-    android:background="@drawable/launch_background">
+    android:background="@drawable/widget_background">
 
-    <ImageView
-        android:id="@+id/widget_album_art"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:src="@mipmap/launcher_icon"
-        android:scaleType="centerCrop" />
+    <!-- Play/Pause Remote Action Button -->
+    <ImageButton
+        android:id="@+id/widget_play_pause_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_play"
+        android:contentDescription="Play or Pause"
+        android:scaleType="fitCenter" />
 
+    <!-- Track Metadata Information -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -26,7 +31,7 @@
             android:id="@+id/widget_track_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ترانيمنا"
+            android:text="تحميل ترانيم"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
@@ -34,38 +39,24 @@
             android:ellipsize="end" />
 
         <TextView
-            android:id="@+id/widget_artist_name"
+            android:id="@+id/widget_track_artist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="تطبيق الترانيم الروحية"
+            android:text="لا توجد ترنيمة قيد التشغيل"
             android:textSize="12sp"
             android:textColor="#B0BEC5"
             android:maxLines="1"
             android:ellipsize="end" />
     </LinearLayout>
 
+    <!-- Skip Next Remote Action Button -->
     <ImageButton
-        android:id="@+id/widget_btn_prev"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:id="@+id/widget_next_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_media_previous"
-        android:contentDescription="Previous" />
-
-    <ImageButton
-        android:id="@+id/widget_btn_play_pause"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_media_play"
-        android:contentDescription="Play/Pause" />
-
-    <ImageButton
-        android:id="@+id/widget_btn_next"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_media_next"
-        android:contentDescription="Next" />
+        android:src="@drawable/ic_skip_next"
+        android:contentDescription="Skip Next"
+        android:scaleType="fitCenter" />
 
 </LinearLayout>

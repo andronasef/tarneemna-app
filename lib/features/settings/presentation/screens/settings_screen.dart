@@ -325,7 +325,7 @@ class ModernSettingsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.share_outlined),
                     title: const Text('شارك التطبيق مع أصدقائك', style: TextStyle(fontSize: 14)),
                     onTap: () => Share.share(
-                      'استمع وحمل آلاف الترانيم الروحية عبر تطبيق ترانيمنا: ${AppUrls.share}',
+                      'استمع وحمل آلاف الترانيم الروحية عبر تطبيق ${AppDetails.kAppName}: ${AppUrls.share}',
                     ),
                   ),
                   const Divider(height: 1),
@@ -356,7 +356,7 @@ class ModernSettingsScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   Text(
-                    'تطبيق ترانيمنا • الإصدار 2.0.0 الحديث',
+                    'تطبيق ${AppDetails.kAppName} • الإصدار 2.0.0 الحديث',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.white54 : Colors.black54,

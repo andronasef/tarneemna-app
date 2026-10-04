@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 
 class QuoteCardDialog extends StatefulWidget {
@@ -59,12 +60,12 @@ class _QuoteCardDialogState extends State<QuoteCardDialog> {
 
       final Uint8List pngBytes = byteData.buffer.asUint8List();
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/tarneemna_quote_${DateTime.now().millisecondsSinceEpoch}.png');
+      final file = File('${tempDir.path}/quote_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(pngBytes);
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'ترنيمة: ${widget.hymn.title}\nتطبيق ترانيمنا',
+        text: 'ترنيمة: ${widget.hymn.title}\nتطبيق ${AppDetails.kAppName}',
       );
     } catch (e) {
       if (kDebugMode) print('Error generating quote card: $e');
@@ -162,7 +163,7 @@ class _QuoteCardDialogState extends State<QuoteCardDialog> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
-                              'تطبيق ترانيمنا',
+                              'تطبيق ${AppDetails.kAppName}',
                               style: TextStyle(color: Colors.white60, fontSize: 11),
                             ),
                           ),

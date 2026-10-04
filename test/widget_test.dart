@@ -5,7 +5,7 @@ import 'package:tarneemna/tarnemma.dart';
 
 void main() {
   test('App constants and routes validation', () {
-    expect(AppDetails.kAppName, 'ترانيمنا');
+    expect(AppDetails.kAppName, 'تحميل ترانيم');
     expect(AppDetails.kAppPackageName, 'com.increase.tarneemna');
     expect(AppPages.initial, Routes.home);
     expect(AppPages.routes.isNotEmpty, true);

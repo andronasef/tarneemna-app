@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_fadein/flutter_fadein.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
 import 'package:tarneemna/features/settings/presentation/screens/settings_screen.dart';
 
@@ -98,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 10),
                       ],
-                      title: const Text('ترانيمنا'),
+                      title: const Text(AppDetails.kAppName),
                     ),
                     const SizedBox(height: 4),
                     TarnemaSearch(controller: controller),
