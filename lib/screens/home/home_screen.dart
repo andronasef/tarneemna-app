@@ -6,7 +6,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_fadein/flutter_fadein.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
-import 'package:tarneemna/screens/settings/settings_screen.dart';
+import 'package:tarneemna/features/settings/presentation/screens/settings_screen.dart';
 
 import 'home_controller.dart';
 import 'widgets/miniplayer.dart';
@@ -83,11 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 tooltip: "الترانيم المحملة",
               ),
               IconButton(
-                onPressed: () async {
-                  await Get.to(() => const SettingsScreen());
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ModernSettingsScreen()),
+                  );
                 },
                 icon: const Icon(Icons.settings),
-                tooltip: "الإعدادات",
+                tooltip: "الإعدادات والمظهر",
               ),
               const SizedBox(width: 10),
             ],
