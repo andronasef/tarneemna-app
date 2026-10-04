@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tarneemna/features/settings/data/sources/settings_service.dart';
-import 'package:tarneemna/features/settings/domain/models/app_settings.dart';
+
+import '../../data/sources/settings_service.dart';
+import '../../domain/models/app_settings.dart';
 
 final settingsServiceProvider = Provider<SettingsService>((ref) {
   throw UnimplementedError('settingsServiceProvider must be overridden in ProviderScope');
@@ -26,16 +27,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setFontScale(double scale) async {
     final clamped = scale.clamp(0.85, 1.30);
     state = state.copyWith(fontScale: clamped);
-    await _service.saveSettings(state);
-  }
-
-  Future<void> setGaplessPlayback(bool enabled) async {
-    state = state.copyWith(gaplessPlayback: enabled);
-    await _service.saveSettings(state);
-  }
-
-  Future<void> setAutoDownloadFavoritesWifi(bool enabled) async {
-    state = state.copyWith(autoDownloadFavoritesWifi: enabled);
     await _service.saveSettings(state);
   }
 
@@ -70,6 +61,7 @@ ThemeData buildAppTheme({
         primary: primaryColor,
         secondary: primaryColor,
         surface: Colors.black,
+        surfaceContainerHighest: const Color(0xFF1E1E1E),
         error: Colors.redAccent,
         onPrimary: Colors.white,
         onSurface: highContrast ? Colors.white : Colors.white70,
@@ -78,6 +70,29 @@ ThemeData buildAppTheme({
         backgroundColor: Colors.black,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF161616),
+        hintStyle: TextStyle(
+          color: highContrast ? Colors.white70 : Colors.white38,
+          fontSize: 14,
+        ),
+        prefixIconColor: primaryColor,
+        suffixIconColor: Colors.white54,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.16)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.16)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: primaryColor, width: 1.5),
+        ),
       ),
       textTheme: applyCustomFont
           ? GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme)
@@ -96,6 +111,7 @@ ThemeData buildAppTheme({
         primary: primaryColor,
         secondary: primaryColor,
         surface: const Color(0xFF1E293B),
+        surfaceContainerHighest: const Color(0xFF283548),
         onPrimary: Colors.white,
         onSurface: highContrast ? Colors.white : Colors.white70,
       ),
@@ -103,6 +119,29 @@ ThemeData buildAppTheme({
         backgroundColor: Color(0xFF0F172A),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1E293B),
+        hintStyle: TextStyle(
+          color: highContrast ? Colors.white70 : Colors.white38,
+          fontSize: 14,
+        ),
+        prefixIconColor: primaryColor,
+        suffixIconColor: Colors.white54,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: primaryColor, width: 1.5),
+        ),
       ),
       textTheme: applyCustomFont
           ? GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme)
@@ -121,6 +160,7 @@ ThemeData buildAppTheme({
       primary: primaryColor,
       secondary: primaryColor,
       surface: Colors.white,
+      surfaceContainerHighest: const Color(0xFFE2E8F0),
       onPrimary: Colors.white,
       onSurface: highContrast ? Colors.black : Colors.black87,
     ),
@@ -129,17 +169,46 @@ ThemeData buildAppTheme({
       elevation: 0,
       surfaceTintColor: Colors.transparent,
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFFF1F5F9),
+      hintStyle: TextStyle(
+        color: highContrast ? Colors.black87 : Colors.black45,
+        fontSize: 14,
+      ),
+      prefixIconColor: primaryColor,
+      suffixIconColor: Colors.black54,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: primaryColor, width: 1.5),
+      ),
+    ),
     textTheme: applyCustomFont
         ? GoogleFonts.cairoTextTheme(ThemeData.light().textTheme)
         : ThemeData.light().textTheme,
   );
 }
 
-final activeThemeProvider = Provider<ThemeData>((ref) {
-  final settings = ref.watch(settingsNotifierProvider);
+final lightThemeProvider = Provider<ThemeData>((ref) {
+  final s = ref.watch(settingsNotifierProvider);
+  return buildAppTheme(mode: AppThemeMode.light, accent: s.accent, highContrast: s.highContrastText);
+});
+
+/// OLED when chosen, otherwise the regular dark theme (used by "system" too).
+final darkThemeProvider = Provider<ThemeData>((ref) {
+  final s = ref.watch(settingsNotifierProvider);
   return buildAppTheme(
-    mode: settings.themeMode,
-    accent: settings.accent,
-    highContrast: settings.highContrastText,
+    mode: s.themeMode == AppThemeMode.oled ? AppThemeMode.oled : AppThemeMode.dark,
+    accent: s.accent,
+    highContrast: s.highContrastText,
   );
 });

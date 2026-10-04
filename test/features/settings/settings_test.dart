@@ -10,8 +10,6 @@ void main() {
       expect(settings.themeMode, AppThemeMode.system);
       expect(settings.accent, SpiritualAccent.coral);
       expect(settings.fontScale, 1.0);
-      expect(settings.gaplessPlayback, isTrue);
-      expect(settings.autoDownloadFavoritesWifi, isFalse);
     });
 
     test('AppSettings serializes and deserializes accurately', () {
@@ -19,8 +17,6 @@ void main() {
         themeMode: AppThemeMode.oled,
         accent: SpiritualAccent.gold,
         fontScale: 1.15,
-        gaplessPlayback: false,
-        autoDownloadFavoritesWifi: true,
         highContrastText: true,
       );
 
@@ -28,16 +24,12 @@ void main() {
       expect(map['themeMode'], 'oled');
       expect(map['accent'], 'gold');
       expect(map['fontScale'], 1.15);
-      expect(map['gaplessPlayback'], isFalse);
-      expect(map['autoDownloadFavoritesWifi'], isTrue);
       expect(map['highContrastText'], isTrue);
 
       final restored = AppSettings.fromMap(map);
       expect(restored.themeMode, AppThemeMode.oled);
       expect(restored.accent, SpiritualAccent.gold);
       expect(restored.fontScale, 1.15);
-      expect(restored.gaplessPlayback, isFalse);
-      expect(restored.autoDownloadFavoritesWifi, isTrue);
       expect(restored.highContrastText, isTrue);
     });
 

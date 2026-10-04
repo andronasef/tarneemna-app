@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tarneemna/core/values.dart';
+import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
+import 'package:tarneemna/features/downloads/presentation/screens/storage_manager_screen.dart';
 import 'package:tarneemna/features/settings/domain/models/app_settings.dart';
 import 'package:tarneemna/features/settings/presentation/providers/settings_providers.dart';
 import 'package:tarneemna/screens/markdown/markdown_screen.dart';
 import 'package:tarneemna/utils/open_urls.dart';
+
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return await PackageInfo.fromPlatform();
+});
 
 class ModernSettingsScreen extends ConsumerWidget {
   const ModernSettingsScreen({super.key});
@@ -31,7 +38,8 @@ class ModernSettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
             // Section 1: Appearance & Theme
-            _buildSectionHeader(context, 'المظهر والسمات', Icons.palette_outlined),
+            _buildSectionHeader(
+                context, 'المظهر والسمات', Icons.palette_outlined),
             const SizedBox(height: 8),
             Card(
               elevation: 0,
@@ -42,94 +50,80 @@ class ModernSettingsScreen extends ConsumerWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'وضع السمة (Theme Mode)',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      'نمط العرض',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    Row(
                       children: [
-                        _buildThemeChip(
-                          context: context,
-                          label: 'تلقائي (النظام)',
+                        _buildThemeModeChip(
+                          context,
+                          label: 'تلقائي',
                           icon: Icons.brightness_auto,
                           selected: settings.themeMode == AppThemeMode.system,
                           onTap: () => notifier.setThemeMode(AppThemeMode.system),
                         ),
-                        _buildThemeChip(
-                          context: context,
+                        const SizedBox(width: 8),
+                        _buildThemeModeChip(
+                          context,
                           label: 'فاتح',
                           icon: Icons.light_mode,
                           selected: settings.themeMode == AppThemeMode.light,
                           onTap: () => notifier.setThemeMode(AppThemeMode.light),
                         ),
-                        _buildThemeChip(
-                          context: context,
+                        const SizedBox(width: 8),
+                        _buildThemeModeChip(
+                          context,
                           label: 'داكن',
                           icon: Icons.dark_mode,
                           selected: settings.themeMode == AppThemeMode.dark,
                           onTap: () => notifier.setThemeMode(AppThemeMode.dark),
                         ),
-                        _buildThemeChip(
-                          context: context,
-                          label: 'أسود مطلق (OLED)',
+                        const SizedBox(width: 8),
+                        _buildThemeModeChip(
+                          context,
+                          label: 'OLED',
                           icon: Icons.nightlight_round,
-                          badge: 'توفير بطارية',
                           selected: settings.themeMode == AppThemeMode.oled,
                           onTap: () => notifier.setThemeMode(AppThemeMode.oled),
                         ),
                       ],
                     ),
-                    const Divider(height: 32),
+                    const Divider(height: 28),
                     const Text(
-                      'اللون الروحي الأساسي',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      'لون التمييز الروحي',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: SpiritualAccent.values.map((accent) {
                         final isSelected = settings.accent == accent;
-                        return InkWell(
-                          onTap: () => notifier.setAccent(accent),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? accent.color.withValues(alpha: 0.15)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? accent.color : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleAvatar(
-                                  radius: 10,
-                                  backgroundColor: accent.color,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  accent.label,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? accent.color : null,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        return ChoiceChip(
+                          avatar: CircleAvatar(
+                            backgroundColor: accent.color,
+                            radius: 8,
+                          ),
+                          label: Text(accent.label),
+                          selected: isSelected,
+                          onSelected: (_) => notifier.setAccent(accent),
+                          selectedColor: accent.color.withValues(alpha: 0.2),
+                          side: BorderSide(
+                            color: isSelected
+                                ? accent.color
+                                : (isDark ? Colors.white24 : Colors.black12),
                           ),
                         );
                       }).toList(),
@@ -140,8 +134,9 @@ class ModernSettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // Section 2: Senior Accessibility & Typography
-            _buildSectionHeader(context, 'إمكانية الوصول والخط لكبار السن', Icons.accessibility_new),
+            // Section 2: Reading & Typography
+            _buildSectionHeader(
+                context, 'القراءة والخط', Icons.format_size_rounded),
             const SizedBox(height: 8),
             Card(
               elevation: 0,
@@ -152,7 +147,7 @@ class ModernSettingsScreen extends ConsumerWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -160,80 +155,60 @@ class ModernSettingsScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'حجم الخط العام',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          'حجم الخط',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
-                          _getFontScaleLabel(settings.fontScale),
+                          '${(settings.fontScale * 100).toInt()}%',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
                     Slider(
                       value: settings.fontScale,
                       min: 0.85,
                       max: 1.30,
-                      divisions: 3,
-                      label: _getFontScaleLabel(settings.fontScale),
+                      divisions: 9,
+                      label: '${(settings.fontScale * 100).toInt()}%',
                       onChanged: (val) => notifier.setFontScale(val),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('صغير (0.85x)', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54)),
-                        Text('عادي (1.0x)', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54)),
-                        Text('كبير (1.15x)', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54)),
-                        Text('كبار السن (1.30x)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                        Text('أصغر (85%)',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white54 : Colors.black54)),
+                        Text('افتراضي (100%)',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white54 : Colors.black54)),
+                        Text('أكبر (130%)',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white54 : Colors.black54)),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Live Preview Container
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.black26 : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'معاينة قراءة الكلمات والترانيم:',
-                            style: TextStyle(
-                              fontSize: 12 * settings.fontScale,
-                              color: isDark ? Colors.white60 : Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '«يا صاحب الحنان.. يا ملجأ الأنام.. إليك ألتجئ، ترنيمتي أنت في ليل الآلام»',
-                            style: TextStyle(
-                              fontSize: 15 * settings.fontScale,
-                              fontWeight: FontWeight.bold,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                     const Divider(height: 28),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.contrast_rounded),
                       title: const Text(
-                        'تباين عالي للنصوص (High Contrast)',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        'تباين فائق للنصوص',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       subtitle: const Text(
-                        'زيادة وضوح الحروف لقراءة مريحة للعين',
+                        'تحسين وضوح قراءة النصوص',
                         style: TextStyle(fontSize: 12),
                       ),
                       value: settings.highContrastText,
@@ -245,8 +220,9 @@ class ModernSettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // Section 3: Audio & Downloads
-            _buildSectionHeader(context, 'خيارات التشغيل والتحميل', Icons.music_note_outlined),
+            // Section 3: Audio & Playback
+            _buildSectionHeader(
+                context, 'الصوتيات والتشغيل', Icons.headphones_outlined),
             const SizedBox(height: 8),
             Card(
               elevation: 0,
@@ -258,50 +234,34 @@ class ModernSettingsScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  SwitchListTile(
-                    title: const Text(
-                      'تشغيل مستمر ومتصل (Gapless Playback)',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: const Text(
-                      'الانتقال التلقائي للترنيمة التالية بدون انقطاع',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: settings.gaplessPlayback,
-                    onChanged: (val) => notifier.setGaplessPlayback(val),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: const Text(
-                      'تحميل الترانيم المفضلة على Wi-Fi',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: const Text(
-                      'حفظ الترانيم المضافة للمفضلة تلقائياً للاستماع دون إنترنت',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: settings.autoDownloadFavoritesWifi,
-                    onChanged: (val) => notifier.setAutoDownloadFavoritesWifi(val),
-                  ),
-                  const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.sd_storage_outlined),
+                    leading: const Icon(Icons.storage_rounded),
                     title: const Text(
-                      'إدارة التخزين والكاش',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      'إدارة التخزين والمساحة',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                    onTap: () => Get.toNamed('/storage-manager'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const StorageManagerScreen()),
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.download_done_rounded),
                     title: const Text(
                       'الترانيم المحملة',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                    onTap: () => Get.toNamed('/downloads'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const OfflineDownloadsScreen()),
+                    ),
                   ),
                 ],
               ),
@@ -309,7 +269,8 @@ class ModernSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 20),
 
             // Section 4: Community & Support
-            _buildSectionHeader(context, 'المساعدة والتواصل', Icons.favorite_border),
+            _buildSectionHeader(
+                context, 'المساعدة والتواصل', Icons.favorite_border),
             const SizedBox(height: 8),
             Card(
               elevation: 0,
@@ -323,7 +284,8 @@ class ModernSettingsScreen extends ConsumerWidget {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.share_outlined),
-                    title: const Text('شارك التطبيق مع أصدقائك', style: TextStyle(fontSize: 14)),
+                    title: const Text('شارك التطبيق مع أصدقائك',
+                        style: TextStyle(fontSize: 14)),
                     onTap: () => Share.share(
                       'استمع وحمل آلاف الترانيم الروحية عبر تطبيق ${AppDetails.kAppName}: ${AppUrls.share}',
                     ),
@@ -331,46 +293,58 @@ class ModernSettingsScreen extends ConsumerWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.star_outline),
-                    title: const Text('قيّم التطبيق على المتجر', style: TextStyle(fontSize: 14)),
+                    title: const Text('قيّم التطبيق على المتجر',
+                        style: TextStyle(fontSize: 14)),
                     onTap: () => openUrl(AppUrls.rate),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.lightbulb_outline),
-                    title: const Text('طلب ترنيمة مفقودة أو ميزة جديدة', style: TextStyle(fontSize: 14)),
+                    title: const Text('طلب ترنيمة مفقودة أو ميزة جديدة',
+                        style: TextStyle(fontSize: 14)),
                     onTap: () => openUrl(AppUrls.support),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.privacy_tip_outlined),
-                    title: const Text('سياسة الخصوصية', style: TextStyle(fontSize: 14)),
-                    onTap: () => Get.to(() => const MarkdownPage('assets/md/tarneemna.md')),
+                    title: const Text('سياسة الخصوصية',
+                        style: TextStyle(fontSize: 14)),
+                    onTap: () => Get.to(
+                        () => const MarkdownPage('assets/md/tarneemna.md')),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // About Footer
+            // About Footer (Dynamic App Name & Version)
             Center(
               child: Column(
                 children: [
-                  Text(
-                    'تطبيق ${AppDetails.kAppName} • الإصدار 2.0.0 الحديث',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.white54 : Colors.black54,
-                    ),
-                  ),
+                  ref.watch(packageInfoProvider).when(
+                        data: (info) => Text(
+                          'تطبيق ${info.appName.isNotEmpty ? info.appName : AppDetails.kAppName} • الإصدار ${info.version}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                        loading: () => Text(
+                          'تطبيق ${AppDetails.kAppName}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                        error: (_, __) => Text(
+                          'تطبيق ${AppDetails.kAppName}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                      ),
                   const SizedBox(height: 4),
-                  Text(
-                    'لتمجيد اسم المسيح وبناء الأرواح في كل زمان ومكان',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.white38 : Colors.black38,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -380,7 +354,8 @@ class ModernSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+  Widget _buildSectionHeader(
+      BuildContext context, String title, IconData icon) {
     return Row(
       children: [
         Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
@@ -388,7 +363,7 @@ class ModernSettingsScreen extends ConsumerWidget {
         Text(
           title,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
           ),
@@ -397,69 +372,59 @@ class ModernSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeChip({
-    required BuildContext context,
+  Widget _buildThemeModeChip(
+    BuildContext context, {
     required String label,
     required IconData icon,
     required bool selected,
     required VoidCallback onTap,
-    String? badge,
   }) {
-    final primary = Theme.of(context).colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? primary.withValues(alpha: 0.15)
-              : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04)),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? primary : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: selected ? primary : null),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? primary : null,
-              ),
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? theme.colorScheme.primary
+                  : (isDark ? Colors.white12 : Colors.black12),
+              width: selected ? 1.5 : 1,
             ),
-            if (badge != null) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badge,
-                  style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: selected
+                    ? theme.colorScheme.primary
+                    : (isDark ? Colors.white70 : Colors.black54),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  color: selected
+                      ? theme.colorScheme.primary
+                      : (isDark ? Colors.white70 : Colors.black54),
                 ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  String _getFontScaleLabel(double scale) {
-    if (scale <= 0.90) return 'صغير (0.85x)';
-    if (scale <= 1.05) return 'عادي (1.0x)';
-    if (scale <= 1.20) return 'كبير (1.15x)';
-    return 'كبار السن (1.30x)';
   }
 }

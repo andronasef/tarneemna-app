@@ -12,10 +12,16 @@ class MarkdownPage extends StatefulWidget {
 }
 
 class _MarkdownPageState extends State<MarkdownPage> {
-  RxString markdown = "### Loading".obs;
+  RxString markdown = "### جاري التحميل...".obs;
 
-  Future<void> loadMarkdown() async =>
-      markdown.value = await rootBundle.loadString(widget.theMarkdownFilePath);
+  Future<void> loadMarkdown() async {
+    try {
+      final content = await rootBundle.loadString(widget.theMarkdownFilePath);
+      markdown.value = content;
+    } catch (e) {
+      markdown.value = "### تعذر تحميل الملف\n\nنعتذر، لم نتمكن من قراءة المحتوى في الوقت الحالي.";
+    }
+  }
 
   @override
   void initState() {
@@ -25,32 +31,44 @@ class _MarkdownPageState extends State<MarkdownPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Directionality(
+      textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Obx(
-                () => Markdown(
-                  data: markdown.value,
+        appBar: AppBar(
+          title: const Text('سياسة الخصوصية'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(),
+          ),
+        ),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Obx(
+                  () => Markdown(
+                    data: markdown.value,
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: ElevatedButton(
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: context.theme.colorScheme.secondary),
+                    backgroundColor: context.theme.colorScheme.primary,
+                  ),
                   onPressed: () {
                     Get.back();
                   },
                   child: const Text(
-                    "Continue",
+                    "إغلاق",
                     style: TextStyle(color: Colors.white),
-                  )),
-            ),
-          ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -42,16 +42,12 @@ class AppSettings {
   final AppThemeMode themeMode;
   final SpiritualAccent accent;
   final double fontScale;
-  final bool gaplessPlayback;
-  final bool autoDownloadFavoritesWifi;
   final bool highContrastText;
 
   const AppSettings({
     this.themeMode = AppThemeMode.system,
     this.accent = SpiritualAccent.coral,
     this.fontScale = 1.0,
-    this.gaplessPlayback = true,
-    this.autoDownloadFavoritesWifi = false,
     this.highContrastText = false,
   });
 
@@ -59,16 +55,12 @@ class AppSettings {
     AppThemeMode? themeMode,
     SpiritualAccent? accent,
     double? fontScale,
-    bool? gaplessPlayback,
-    bool? autoDownloadFavoritesWifi,
     bool? highContrastText,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
       accent: accent ?? this.accent,
       fontScale: fontScale ?? this.fontScale,
-      gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
-      autoDownloadFavoritesWifi: autoDownloadFavoritesWifi ?? this.autoDownloadFavoritesWifi,
       highContrastText: highContrastText ?? this.highContrastText,
     );
   }
@@ -78,8 +70,6 @@ class AppSettings {
       'themeMode': themeMode.name,
       'accent': accent.name,
       'fontScale': fontScale,
-      'gaplessPlayback': gaplessPlayback,
-      'autoDownloadFavoritesWifi': autoDownloadFavoritesWifi,
       'highContrastText': highContrastText,
     };
   }
@@ -90,8 +80,6 @@ class AppSettings {
     final themeModeStr = map['themeMode'] as String? ?? 'system';
     final accentStr = map['accent'] as String? ?? 'coral';
     final fontScaleVal = (map['fontScale'] as num?)?.toDouble() ?? 1.0;
-    final gaplessVal = map['gaplessPlayback'] as bool? ?? true;
-    final autoDownloadVal = map['autoDownloadFavoritesWifi'] as bool? ?? false;
     final highContrastVal = map['highContrastText'] as bool? ?? false;
 
     return AppSettings(
@@ -104,8 +92,6 @@ class AppSettings {
         orElse: () => SpiritualAccent.coral,
       ),
       fontScale: fontScaleVal.clamp(0.85, 1.30),
-      gaplessPlayback: gaplessVal,
-      autoDownloadFavoritesWifi: autoDownloadVal,
       highContrastText: highContrastVal,
     );
   }
