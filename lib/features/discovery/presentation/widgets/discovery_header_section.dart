@@ -108,6 +108,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           error: (_, __) => const SizedBox.shrink(),
           data: (hymn) {
             if (hymn == null) return const SizedBox.shrink();
+            final hasArtwork = hymn.artworkUrl != null && hymn.artworkUrl!.trim().isNotEmpty;
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               padding: const EdgeInsets.all(16),
@@ -132,13 +133,13 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                       color: Colors.white12,
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: hymn.artworkUrl != null
+                    child: hasArtwork
                         ? Image.network(
                             hymn.artworkUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Image.asset('assets/icon.png', fit: BoxFit.cover),
+                            errorBuilder: (_, __, ___) => _buildMusicNotePlaceholder(),
                           )
-                        : Image.asset('assets/icon.png', fit: BoxFit.cover),
+                        : _buildMusicNotePlaceholder(),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -312,6 +313,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                     itemCount: topAlbums.length,
                     itemBuilder: (ctx, idx) {
                       final album = topAlbums[idx];
+                      final hasAlbumImage = album.imageUrl != null && album.imageUrl!.trim().isNotEmpty;
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -342,13 +344,13 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                   ],
                                 ),
                                 clipBehavior: Clip.antiAlias,
-                                child: album.imageUrl != null
+                                child: hasAlbumImage
                                     ? Image.network(
                                         album.imageUrl!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Image.asset('assets/icon.png', fit: BoxFit.cover),
+                                        errorBuilder: (_, __, ___) => _buildAlbumMusicNotePlaceholder(),
                                       )
-                                    : Image.asset('assets/icon.png', fit: BoxFit.cover),
+                                    : _buildAlbumMusicNotePlaceholder(),
                               ),
                               const SizedBox(height: 6),
                               Text(
@@ -384,6 +386,30 @@ class DiscoveryHeaderSection extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMusicNotePlaceholder() {
+    return Container(
+      color: Colors.white10,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.music_note_rounded,
+        size: 34,
+        color: Colors.amber,
+      ),
+    );
+  }
+
+  Widget _buildAlbumMusicNotePlaceholder() {
+    return Container(
+      color: Colors.white10,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.album_rounded,
+        size: 36,
+        color: Colors.white54,
+      ),
     );
   }
 }
