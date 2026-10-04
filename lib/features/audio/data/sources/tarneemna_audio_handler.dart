@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/youtube/data/sources/youtube_audio_resolver.dart';
 
 class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
+  final OfflineStorageService? _offlineStorageService;
   int _currentIndex = -1;
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _playbackEventSubscription;
@@ -15,8 +18,11 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   StreamSubscription? _positionSubscription;
   StreamSubscription? _bufferedPositionSubscription;
 
-  TarneemnaAudioHandler({AudioPlayer? player})
-      : _player = player ?? AudioPlayer() {
+  TarneemnaAudioHandler({
+    AudioPlayer? player,
+    OfflineStorageService? offlineStorageService,
+  })  : _player = player ?? AudioPlayer(),
+        _offlineStorageService = offlineStorageService {
     _init();
   }
 
@@ -224,9 +230,37 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
     final item = list[index];
     mediaItem.add(item);
 
+    // 1. Check for offline local file
+    final storage = _offlineStorageService;
+    if (storage != null && storage.isDownloaded(item.id)) {
+      final downloaded = storage.getDownloadedHymn(item.id);
+      if (downloaded != null && File(downloaded.localFilePath).existsSync()) {
+        try {
+          await _player.stop();
+          await _player.setFilePath(downloaded.localFilePath);
+          await _player.play();
+          return;
+        } catch (e) {
+          if (kDebugMode) print('Local file playback error: $e');
+        }
+      }
+    }
+
     // Resolve audio URL
     String? audioUrl = item.extras?['audioUrl'] as String?;
     final sourceName = item.extras?['source'] as String? ?? '';
+
+    // If audioUrl is already a local file path
+    if (audioUrl != null && audioUrl.startsWith('/') && File(audioUrl).existsSync()) {
+      try {
+        await _player.stop();
+        await _player.setFilePath(audioUrl);
+        await _player.play();
+        return;
+      } catch (e) {
+        if (kDebugMode) print('File path playback error: $e');
+      }
+    }
 
     if (audioUrl == null || audioUrl.isEmpty) {
       if (sourceName == HymnSource.taranimar.name) {

@@ -12,6 +12,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app/app.dart';
 import 'features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'features/audio/presentation/providers/audio_providers.dart';
+import 'features/downloads/data/sources/offline_storage_service.dart';
+import 'features/downloads/presentation/providers/download_providers.dart';
 import 'features/hymns/data/sources/local_hymn_cache.dart';
 import 'firebase_options.dart';
 import 'player.dart';
@@ -28,9 +30,12 @@ Future<void> main(List<String> args) async {
   final localHymnCache = LocalHymnCache();
   await localHymnCache.init();
 
+  final offlineStorageService = OfflineStorageService();
+  await offlineStorageService.init();
+
   // Initialize Audio Service for background playback
   final audioHandler = await AudioService.init(
-    builder: () => TarneemnaAudioHandler(),
+    builder: () => TarneemnaAudioHandler(offlineStorageService: offlineStorageService),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.increase.tarneemna.audio',
       androidNotificationChannelName: 'تشغيل الترانيم',
@@ -53,6 +58,7 @@ Future<void> main(List<String> args) async {
     ProviderScope(
       overrides: [
         localHymnCacheProvider.overrideWithValue(localHymnCache),
+        offlineStorageServiceProvider.overrideWithValue(offlineStorageService),
         audioHandlerProvider.overrideWithValue(audioHandler),
       ],
       child: const App(),
