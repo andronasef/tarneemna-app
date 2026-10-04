@@ -15,6 +15,7 @@ class TraneemList extends StatelessWidget {
   });
 
   final HomeController controller;
+  static final SearchHistoryService _searchHistoryService = SearchHistoryService();
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +37,7 @@ class TraneemList extends StatelessWidget {
       }
 
       if (controller.traneem.isEmpty) {
-        final suggestions = [
+        const suggestions = [
           "انا شاعر بيك",
           "يسوع فادي النفس",
           "علمني انتظر الرب",
@@ -44,11 +45,11 @@ class TraneemList extends StatelessWidget {
           "يا صاحب الحنان",
         ];
 
-        final searchHistoryService = SearchHistoryService();
-        final recentQueries = searchHistoryService.getQueries();
+        final recentQueries = _searchHistoryService.getQueries();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 90),
+          padding: const EdgeInsets.only(bottom: 95),
+          physics: const ClampingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -69,7 +70,7 @@ class TraneemList extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () async {
-                              await searchHistoryService.clearAll();
+                              await _searchHistoryService.clearAll();
                               controller.update();
                             },
                             child: const Text('مسح', style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -124,8 +125,8 @@ class TraneemList extends StatelessWidget {
       }
 
       return ListView.builder(
-        padding: const EdgeInsets.only(bottom: 85),
-        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 95),
+        physics: const ClampingScrollPhysics(),
         itemCount: controller.traneem.length,
         itemBuilder: (context, index) {
           final t = controller.traneem[index];
@@ -156,6 +157,8 @@ class TraneemTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 fit: BoxFit.cover,
+                cacheWidth: 120,
+                cacheHeight: 120,
                 errorBuilder: (_, __, ___) =>
                     const Icon(Icons.music_note, size: 32),
               )

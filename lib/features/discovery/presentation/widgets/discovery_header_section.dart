@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/albums/presentation/screens/album_detail_screen.dart';
@@ -22,7 +20,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hymnOfDayAsync = ref.watch(hymnOfTheDayProvider);
     final singersAsync = ref.watch(singersListProvider);
-    final albumsAsync = ref.watch(albumsListProvider);
+    final albumsAsync = ref.watch(randomizedAlbumsProvider);
     final audioHandler = ref.watch(audioHandlerProvider);
 
     return Column(
@@ -139,6 +137,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                         ? Image.network(
                             hymn.artworkUrl!,
                             fit: BoxFit.cover,
+                            cacheWidth: 160,
+                            cacheHeight: 160,
                             errorBuilder: (_, __, ___) => _buildMusicNotePlaceholder(),
                           )
                         : _buildMusicNotePlaceholder(),
@@ -279,13 +279,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
         albumsAsync.when(
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
-          data: (albums) {
-            if (albums.isEmpty) return const SizedBox.shrink();
-            // Seed by current day of year so it stays stable during a session but changes daily,
-            // with shuffle for discovery
-            final random = Random(DateTime.now().day + DateTime.now().month * 100);
-            final shuffledAlbums = List.of(albums)..shuffle(random);
-            final displayedAlbums = shuffledAlbums.take(12).toList();
+          data: (displayedAlbums) {
+            if (displayedAlbums.isEmpty) return const SizedBox.shrink();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,6 +349,8 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                                     ? Image.network(
                                         album.imageUrl!,
                                         fit: BoxFit.cover,
+                                        cacheWidth: 200,
+                                        cacheHeight: 200,
                                         errorBuilder: (_, __, ___) => _buildAlbumMusicNotePlaceholder(),
                                       )
                                     : _buildAlbumMusicNotePlaceholder(),

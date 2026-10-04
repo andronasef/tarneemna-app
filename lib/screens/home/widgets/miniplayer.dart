@@ -23,7 +23,7 @@ class MiniPlayer extends StatelessWidget {
         elevation: 8,
         curve: Curves.easeOutCubic,
         builder: (currentHeight, percentage) {
-          final isMini = currentHeight <= 100;
+          final isMini = percentage < 0.2;
 
           if (!isMini) {
             return FullPlayerView(
@@ -64,6 +64,7 @@ class MiniPlayer extends StatelessWidget {
                     final isPlaying = Player.isPlaying.value;
                     final isBuffering = Player.isBuffering.value;
                     final hymn = Player.currentHymn;
+                    final singerName = hymn?.singer;
 
                     return Row(
                       children: [
@@ -79,6 +80,8 @@ class MiniPlayer extends StatelessWidget {
                             child: Image.network(
                               hymn!.artworkUrl!,
                               fit: BoxFit.cover,
+                              cacheWidth: 100,
+                              cacheHeight: 100,
                               errorBuilder: (_, __, ___) => Image.asset(
                                 'assets/icon.png',
                                 fit: BoxFit.cover,
@@ -113,12 +116,12 @@ class MiniPlayer extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (hasSong && hymn?.singer != null)
+                              if (hasSong && singerName != null && singerName.isNotEmpty)
                                 Text(
-                                  hymn!.singer!,
-                                  style: TextStyle(
+                                  singerName,
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[400],
+                                    color: Colors.grey,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -126,47 +129,33 @@ class MiniPlayer extends StatelessWidget {
                             ],
                           ),
                         ),
-                        IconButton(
-                          iconSize: 26,
-                          onPressed: hasSong ? Player.back5 : null,
-                          icon: const Icon(Icons.replay_5),
-                          tooltip: "إرجاع 5 ثواني",
-                        ),
-                        if (isBuffering)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: SizedBox(
+                        if (hasSong) ...[
+                          if (isBuffering)
+                            const SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2.5),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            IconButton(
+                              icon: Icon(
+                                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                size: 30,
+                              ),
+                              onPressed: () {
+                                if (isPlaying) {
+                                  Player.pause();
+                                } else {
+                                  Player.play();
+                                }
+                              },
                             ),
-                          )
-                        else
                           IconButton(
-                            iconSize: 36,
-                            onPressed: hasSong
-                                ? () {
-                                    if (isPlaying) {
-                                      Player.pause();
-                                    } else {
-                                      Player.play();
-                                    }
-                                  }
-                                : null,
-                            icon: Icon(
-                              isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                              color: hasSong
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey,
-                            ),
-                            tooltip: isPlaying ? "إيقاف مؤقت" : "تشغيل",
+                            icon: const Icon(Icons.close_rounded, size: 22),
+                            onPressed: () => Player.stop(),
+                            tooltip: "إيقاف",
                           ),
-                        IconButton(
-                          iconSize: 26,
-                          onPressed: hasSong ? Player.forward5 : null,
-                          icon: const Icon(Icons.forward_5),
-                          tooltip: "تقديم 5 ثواني",
-                        ),
+                        ],
                       ],
                     );
                   },
