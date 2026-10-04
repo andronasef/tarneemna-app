@@ -36,3 +36,13 @@ final albumsListProvider = FutureProvider<List<Album>>((ref) async {
   final repo = ref.watch(taranimArabiaRepositoryProvider);
   return repo.getAlbums();
 });
+
+final singerSongsProvider = FutureProvider.family<List<Hymn>, String>((ref, singerId) async {
+  final repo = ref.watch(taranimArabiaRepositoryProvider);
+  return repo.getSingerSongs(singerId);
+});
+
+final albumSongsProvider = FutureProvider.family<List<Hymn>, String>((ref, albumId) async {
+  final repo = ref.watch(taranimArabiaRepositoryProvider);
+  return repo.getAlbumSongs(albumId);
+});

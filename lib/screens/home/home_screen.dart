@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_fadein/flutter_fadein.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
 import 'package:tarneemna/screens/settings/settings_screen.dart';
 
 import 'home_controller.dart';
@@ -72,11 +73,21 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             actions: [
               IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OfflineDownloadsScreen()),
+                  );
+                },
+                icon: const Icon(Icons.cloud_download_outlined),
+                tooltip: "الترانيم المحملة",
+              ),
+              IconButton(
                 onPressed: () async {
                   await Get.to(() => const SettingsScreen());
                 },
                 icon: const Icon(Icons.settings),
-                tooltip: "الاعدادات",
+                tooltip: "الإعدادات",
               ),
               const SizedBox(width: 10),
             ],

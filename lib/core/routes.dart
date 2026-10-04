@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
+import 'package:tarneemna/features/albums/presentation/screens/albums_screen.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/storage_manager_screen.dart';
+import 'package:tarneemna/features/singers/presentation/screens/singers_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
@@ -9,6 +11,8 @@ abstract class Routes {
   static const settings = '/settings';
   static const downloads = '/downloads';
   static const storage = '/storage';
+  static const singers = '/singers';
+  static const albums = '/albums';
 }
 
 final appRouter = GoRouter(
@@ -30,6 +34,14 @@ final appRouter = GoRouter(
       path: Routes.storage,
       builder: (context, state) => const StorageManagerScreen(),
     ),
+    GoRoute(
+      path: Routes.singers,
+      builder: (context, state) => const SingersScreen(),
+    ),
+    GoRoute(
+      path: Routes.albums,
+      builder: (context, state) => const AlbumsScreen(),
+    ),
   ],
 );
 
@@ -40,5 +52,7 @@ abstract class AppPages {
     Routes.settings,
     Routes.downloads,
     Routes.storage,
+    Routes.singers,
+    Routes.albums,
   ];
 }

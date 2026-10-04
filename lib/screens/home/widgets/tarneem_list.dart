@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
+import 'package:tarneemna/features/discovery/presentation/widgets/discovery_header_section.dart';
 
 import '../../../player.dart';
 import '../../../tarnemma.dart';
@@ -42,48 +43,39 @@ class TraneemList extends StatelessWidget {
           "يا صاحب الحنان",
         ];
 
-        return Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.music_note_rounded,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "ابحث عن أي ترنيمة للاستماع أو التحميل",
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 90),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DiscoveryHeaderSection(),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "اقتراحات سريعة للبحث:",
+                      style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "اقتراحات سريعة:",
-                    style: TextStyle(color: Colors.black54, fontSize: 13),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: suggestions.map((s) {
-                      return ActionChip(
-                        label: Text(s),
-                        avatar: const Icon(Icons.search, size: 16),
-                        onPressed: () => controller.query(s),
-                      );
-                    }).toList(),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: suggestions.map((s) {
+                        return ActionChip(
+                          label: Text(s),
+                          avatar: const Icon(Icons.search, size: 16),
+                          onPressed: () => controller.query(s),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+            ],
           ),
         );
       }
