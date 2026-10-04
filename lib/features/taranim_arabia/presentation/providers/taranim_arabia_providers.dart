@@ -82,7 +82,10 @@ final randomizedAlbumsProvider = FutureProvider<List<Album>>((ref) async {
       repo.getAlbums(page: page1),
       repo.getAlbums(page: page2),
     ]);
-    final combined = [...results[0], ...results[1]];
+    // Album == is by id, so the Set drops duplicates; skip albums without a cover.
+    final combined = {...results[0], ...results[1]}
+        .where((a) => a.imageUrl != null)
+        .toList();
     if (combined.isEmpty) {
       return repo.getAlbums(page: 1);
     }

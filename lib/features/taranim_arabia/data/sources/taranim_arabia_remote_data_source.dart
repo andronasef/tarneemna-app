@@ -219,7 +219,7 @@ class TaranimArabiaRemoteDataSource {
 
   /// 3. Browse singers directory
   Future<List<Singer>> getSingers({int page = 1}) async {
-    final path = page > 1 ? '/allsingers?page=' : '/allsingers';
+    final path = page > 1 ? '/allsingers?page=$page' : '/allsingers';
     final doc = await _getHtml(path);
     return _parse(doc, parseSingers);
   }
@@ -261,7 +261,7 @@ class TaranimArabiaRemoteDataSource {
 
   /// 5. Browse albums directory
   Future<List<Album>> getAlbums({int page = 1}) async {
-    final path = page > 1 ? '/albums?page=' : '/albums';
+    final path = page > 1 ? '/albums?page=$page' : '/albums';
     final doc = await _getHtml(path);
     return _parse(doc, parseAlbums);
   }
