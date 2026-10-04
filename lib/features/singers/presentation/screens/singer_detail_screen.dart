@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -133,11 +134,11 @@ class SingerDetailScreen extends ConsumerWidget {
                               ),
                             IconButton(
                               icon: const Icon(Icons.play_circle_outline),
-                              onPressed: () => audioHandler.playHymn(hymn),
+                              onPressed: () => audioHandler.playQueue(songs, startIndex: idx),
                             ),
                           ],
                         ),
-                        onTap: () => audioHandler.playHymn(hymn),
+                        onTap: () => audioHandler.playQueue(songs, startIndex: idx),
                       );
                     },
                     childCount: songs.length,
@@ -147,6 +148,7 @@ class SingerDetailScreen extends ConsumerWidget {
             );
           },
         ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

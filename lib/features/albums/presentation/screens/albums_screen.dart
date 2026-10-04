@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/albums/presentation/screens/album_detail_screen.dart';
@@ -136,7 +137,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                                         album.imageUrl!,
                                         fit: BoxFit.cover,
                                         width: double.infinity,
-                                        cacheWidth: 400,
+                                        gaplessPlayback: true,
                                         errorBuilder: (_, __, ___) => Image.asset(
                                           'assets/icon.png',
                                           fit: BoxFit.cover,
@@ -174,6 +175,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

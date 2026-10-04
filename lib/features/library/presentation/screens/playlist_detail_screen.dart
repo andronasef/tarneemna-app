@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -90,13 +91,14 @@ class PlaylistDetailScreen extends ConsumerWidget {
                                   .removeHymn(currentPlaylist.id, hymn.id);
                             },
                           ),
-                          onTap: () => audioHandler.playHymn(hymn),
+                          onTap: () => audioHandler.playQueue(currentPlaylist.hymns, startIndex: idx),
                         );
                       },
                     ),
                   ),
                 ],
               ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

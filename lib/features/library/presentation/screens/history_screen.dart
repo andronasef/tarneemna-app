@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -74,6 +75,7 @@ class HistoryScreen extends ConsumerWidget {
                   );
                 },
               ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/singers/presentation/screens/singer_detail_screen.dart';
@@ -117,6 +118,7 @@ class _SingersScreenState extends ConsumerState<SingersScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

@@ -8,15 +8,13 @@
     android:gravity="center_vertical"
     android:background="@drawable/widget_background">
 
-    <!-- Play/Pause Remote Action Button -->
-    <ImageButton
-        android:id="@+id/widget_play_pause_button"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_play"
-        android:contentDescription="Play or Pause"
-        android:scaleType="fitCenter" />
+    <!-- Album Art / App Icon -->
+    <ImageView
+        android:id="@+id/widget_album_art"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@mipmap/launcher_icon"
+        android:scaleType="centerCrop" />
 
     <!-- Track Metadata Information -->
     <LinearLayout
@@ -39,24 +37,39 @@
             android:ellipsize="end" />
 
         <TextView
-            android:id="@+id/widget_track_artist"
+            android:id="@+id/widget_artist_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="لا توجد ترنيمة قيد التشغيل"
+            android:text="تطبيق الترانيم الروحية"
             android:textSize="12sp"
             android:textColor="#B0BEC5"
             android:maxLines="1"
             android:ellipsize="end" />
     </LinearLayout>
 
-    <!-- Skip Next Remote Action Button -->
+    <!-- Playback Controls -->
     <ImageButton
-        android:id="@+id/widget_next_button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:id="@+id/widget_btn_prev"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_media_previous"
+        android:contentDescription="Previous" />
+
+    <ImageButton
+        android:id="@+id/widget_btn_play_pause"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_play"
+        android:contentDescription="Play/Pause" />
+
+    <ImageButton
+        android:id="@+id/widget_btn_next"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_skip_next"
-        android:contentDescription="Skip Next"
-        android:scaleType="fitCenter" />
+        android:contentDescription="Next" />
 
 </LinearLayout>

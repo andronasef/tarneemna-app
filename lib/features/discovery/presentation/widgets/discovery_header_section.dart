@@ -19,7 +19,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hymnOfDayAsync = ref.watch(hymnOfTheDayProvider);
-    final singersAsync = ref.watch(singersListProvider);
+    final singersAsync = ref.watch(randomizedSingersProvider);
     final albumsAsync = ref.watch(randomizedAlbumsProvider);
     final audioHandler = ref.watch(audioHandlerProvider);
 
@@ -137,8 +137,7 @@ class DiscoveryHeaderSection extends ConsumerWidget {
                         ? Image.network(
                             hymn.artworkUrl!,
                             fit: BoxFit.cover,
-                            cacheWidth: 160,
-                            cacheHeight: 160,
+                            gaplessPlayback: true,
                             errorBuilder: (_, __, ___) => _buildMusicNotePlaceholder(),
                           )
                         : _buildMusicNotePlaceholder(),

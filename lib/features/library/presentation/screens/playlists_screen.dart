@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/library/presentation/providers/library_providers.dart';
@@ -80,6 +81,7 @@ class _PlaylistsScreenState extends ConsumerState<PlaylistsScreen> {
                   );
                 },
               ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

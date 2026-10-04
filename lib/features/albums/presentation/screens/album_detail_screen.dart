@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -80,7 +81,7 @@ class AlbumDetailScreen extends ConsumerWidget {
                               ? Image.network(
                                   artworkUrl!,
                                   fit: BoxFit.cover,
-                                  cacheWidth: 600,
+                                  gaplessPlayback: true,
                                   errorBuilder: (_, __, ___) => Image.asset(
                                     'assets/icon.png',
                                     fit: BoxFit.cover,
@@ -164,11 +165,11 @@ class AlbumDetailScreen extends ConsumerWidget {
                               ),
                             IconButton(
                               icon: const Icon(Icons.play_circle_outline),
-                              onPressed: () => audioHandler.playHymn(hymn),
+                              onPressed: () => audioHandler.playQueue(songs, startIndex: idx),
                             ),
                           ],
                         ),
-                        onTap: () => audioHandler.playHymn(hymn),
+                        onTap: () => audioHandler.playQueue(songs, startIndex: idx),
                       );
                     },
                     childCount: songs.length,
@@ -178,6 +179,7 @@ class AlbumDetailScreen extends ConsumerWidget {
             );
           },
         ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

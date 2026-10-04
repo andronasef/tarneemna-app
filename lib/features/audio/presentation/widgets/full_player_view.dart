@@ -1,3 +1,4 @@
+import 'package:tarneemna/features/downloads/presentation/providers/download_providers.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +41,9 @@ class FullPlayerView extends ConsumerWidget {
     final totalDuration = currentItem.duration ?? Duration.zero;
     final isPlaying = playbackState?.playing ?? false;
     final isFavorite = ref.watch(isFavoriteProvider(currentItem.id));
+    final isDownloaded = ref.watch(isHymnDownloadedProvider(currentItem.id));
+    final downloadManager = ref.watch(downloadManagerServiceProvider);
+    final storageService = ref.watch(offlineStorageServiceProvider);
     final currentHymn = TarneemnaAudioHandler.mediaItemToHymn(currentItem);
 
     return Directionality(
@@ -101,8 +105,7 @@ class FullPlayerView extends ConsumerWidget {
                                   ? Image.network(
                                       currentItem.artUri.toString(),
                                       fit: BoxFit.cover,
-                                      cacheWidth: 600,
-                                      cacheHeight: 600,
+                                      gaplessPlayback: true,
                                       errorBuilder: (_, __, ___) => _buildArtworkFallback(context),
                                     )
                                   : _buildArtworkFallback(context),
@@ -156,79 +159,122 @@ class FullPlayerView extends ConsumerWidget {
                                 tooltip: 'إضافة لقائمة تشغيل',
                                 onPressed: () => _showAddToPlaylistDialog(context, ref, currentHymn),
                               ),
+                              IconButton(
+                                icon: Icon(
+                                  isDownloaded ? Icons.download_done_rounded : Icons.download_rounded,
+                                  color: isDownloaded ? Colors.green : null,
+                                  size: 28,
+                                ),
+                                tooltip: isDownloaded ? 'تم التحميل' : 'تحميل الترنيمة',
+                                onPressed: () async {
+                                  if (isDownloaded) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('الترنيمة محملة بالفعل')),
+                                    );
+                                    return;
+                                  }
+                                  try {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('بدأ تحميل «${currentHymn.title}»...')),
+                                    );
+                                    await downloadManager.downloadHymn(
+                                      currentHymn,
+                                      storageService: storageService,
+                                    );
+                                    ref.invalidate(downloadedHymnsListProvider);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('تم اكتمال تحميل «${currentHymn.title}»')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('فشل تحميل «${currentHymn.title}»')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
 
                           // Seeker Bar (isolated: only this rebuilds on position ticks)
-                          _SeekBar(audioHandler: audioHandler, totalDuration: totalDuration),
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: _SeekBar(audioHandler: audioHandler, totalDuration: totalDuration),
+                          ),
                           const Spacer(flex: 1),
 
                           // Main Playback Controls
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Shuffle
-                              IconButton(
-                                icon: Icon(
-                                  Icons.shuffle_rounded,
-                                  color: playbackState?.shuffleMode == AudioServiceShuffleMode.all
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey,
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Shuffle
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.shuffle_rounded,
+                                    color: playbackState?.shuffleMode == AudioServiceShuffleMode.all
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    final next = playbackState?.shuffleMode == AudioServiceShuffleMode.all
+                                        ? AudioServiceShuffleMode.none
+                                        : AudioServiceShuffleMode.all;
+                                    audioHandler.setShuffleMode(next);
+                                  },
                                 ),
-                                onPressed: () {
-                                  final next = playbackState?.shuffleMode == AudioServiceShuffleMode.all
-                                      ? AudioServiceShuffleMode.none
-                                      : AudioServiceShuffleMode.all;
-                                  audioHandler.setShuffleMode(next);
-                                },
-                              ),
-                              // Skip Previous
-                              IconButton(
-                                icon: const Icon(Icons.skip_previous_rounded, size: 36),
-                                onPressed: () => audioHandler.skipToPrevious(),
-                              ),
-                              // Play / Pause FAB
-                              FloatingActionButton.large(
-                                elevation: 4,
-                                onPressed: () {
-                                  if (isPlaying) {
-                                    audioHandler.pause();
-                                  } else {
-                                    audioHandler.play();
-                                  }
-                                },
-                                child: Icon(
-                                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                  size: 42,
+                                // Skip Previous
+                                IconButton(
+                                  icon: const Icon(Icons.skip_previous_rounded, size: 36),
+                                  onPressed: () => audioHandler.skipToPrevious(),
                                 ),
-                              ),
-                              // Skip Next
-                              IconButton(
-                                icon: const Icon(Icons.skip_next_rounded, size: 36),
-                                onPressed: () => audioHandler.skipToNext(),
-                              ),
-                              // Repeat Mode
-                              IconButton(
-                                icon: Icon(
-                                  playbackState?.repeatMode == AudioServiceRepeatMode.one
-                                      ? Icons.repeat_one_rounded
-                                      : Icons.repeat_rounded,
-                                  color: playbackState?.repeatMode != AudioServiceRepeatMode.none
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey,
+                                // Play / Pause FAB
+                                FloatingActionButton.large(
+                                  elevation: 4,
+                                  onPressed: () {
+                                    if (isPlaying) {
+                                      audioHandler.pause();
+                                    } else {
+                                      audioHandler.play();
+                                    }
+                                  },
+                                  child: Icon(
+                                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                    size: 42,
+                                  ),
                                 ),
-                                onPressed: () {
-                                  final mode = playbackState?.repeatMode;
-                                  final next = mode == AudioServiceRepeatMode.none
-                                      ? AudioServiceRepeatMode.all
-                                      : mode == AudioServiceRepeatMode.all
-                                          ? AudioServiceRepeatMode.one
-                                          : AudioServiceRepeatMode.none;
-                                  audioHandler.setRepeatMode(next);
-                                },
-                              ),
-                            ],
+                                // Skip Next
+                                IconButton(
+                                  icon: const Icon(Icons.skip_next_rounded, size: 36),
+                                  onPressed: () => audioHandler.skipToNext(),
+                                ),
+                                // Repeat Mode
+                                IconButton(
+                                  icon: Icon(
+                                    playbackState?.repeatMode == AudioServiceRepeatMode.one
+                                        ? Icons.repeat_one_rounded
+                                        : Icons.repeat_rounded,
+                                    color: playbackState?.repeatMode != AudioServiceRepeatMode.none
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    final mode = playbackState?.repeatMode;
+                                    final next = mode == AudioServiceRepeatMode.none
+                                        ? AudioServiceRepeatMode.all
+                                        : mode == AudioServiceRepeatMode.all
+                                            ? AudioServiceRepeatMode.one
+                                            : AudioServiceRepeatMode.none;
+                                    audioHandler.setRepeatMode(next);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                           const Spacer(flex: 1),
 

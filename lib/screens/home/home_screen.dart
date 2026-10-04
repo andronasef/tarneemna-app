@@ -111,8 +111,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Full Screen Overlay Miniplayer (Covers Header when Expanded)
-              const MiniPlayer(),
+              // Miniplayer with Container Transform
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MiniPlayer(),
+              ),
             ],
           ),
         ),

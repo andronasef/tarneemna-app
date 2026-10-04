@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -25,6 +26,9 @@ class TaranimArabiaRemoteDataSource {
 
   static String _cleanUrl(String? url) {
     if (url == null || url.isEmpty) return '';
+    if (url.endsWith('/images/album/') || url.endsWith('/album/') || url.endsWith('/album') || url.endsWith('/images/album')) {
+      return '';
+    }
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
@@ -215,7 +219,8 @@ class TaranimArabiaRemoteDataSource {
 
   /// 3. Browse singers directory
   Future<List<Singer>> getSingers({int page = 1}) async {
-    final doc = await _getHtml('/allsingers');
+    final path = page > 1 ? '/allsingers?page=' : '/allsingers';
+    final doc = await _getHtml(path);
     return _parse(doc, parseSingers);
   }
 
@@ -256,7 +261,8 @@ class TaranimArabiaRemoteDataSource {
 
   /// 5. Browse albums directory
   Future<List<Album>> getAlbums({int page = 1}) async {
-    final doc = await _getHtml('/albums');
+    final path = page > 1 ? '/albums?page=' : '/albums';
+    final doc = await _getHtml(path);
     return _parse(doc, parseAlbums);
   }
 
@@ -295,10 +301,28 @@ class TaranimArabiaRemoteDataSource {
     return _parse(doc, parseSearchResults);
   }
 
-  /// 7. Hymn of the Day from homepage
-  Future<Hymn?> getHymnOfTheDay() async {
-    final doc = await _getHtml('/');
-    return _parse(doc, parseHymnOfTheDay);
+  /// 7. Random Hymn across all 1275 pages of /allsongs catalog
+  Future<Hymn?> getHymnOfTheDay({int? page}) async {
+    final rng = Random();
+    final targetPage = page ?? (rng.nextInt(1275) + 1);
+    try {
+      final doc = await _getHtml('/allsongs?page=$targetPage');
+      final songs = await _parse(doc, parseSearchResults);
+      final validSongs = songs.where((s) => s.title.isNotEmpty && !s.title.startsWith('(')).toList();
+      if (validSongs.isNotEmpty) {
+        validSongs.shuffle(rng);
+        return validSongs.first;
+      }
+    } catch (_) {}
+
+    // Fallback: Check homepage featured item
+    try {
+      final doc = await _getHtml('/');
+      final hymn = await _parse(doc, parseHymnOfTheDay);
+      if (hymn != null) return hymn;
+    } catch (_) {}
+
+    return null;
   }
 
   static Hymn? parseHymnOfTheDay(Document doc) {

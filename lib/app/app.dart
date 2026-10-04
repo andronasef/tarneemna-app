@@ -20,6 +20,8 @@ class App extends ConsumerWidget {
     return GetMaterialApp(
       title: AppDetails.kAppName,
       home: const HomeScreen(),
+      locale: const Locale('ar'),
+      fallbackLocale: const Locale('ar'),
       initialBinding: AppControllerBinder(),
       defaultTransition: Transition.cupertino,
       navigatorObservers: [analyticsObserver],
@@ -34,11 +36,14 @@ class App extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(settings.fontScale),
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(settings.fontScale),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );

@@ -33,13 +33,13 @@ dependencies:
   google_fonts: ^6.2.1
   android_path_provider: ^0.3.2
   flutter_fadein: ^2.0.0
-  miniplayer: ^1.0.1
   internet_connection_checker: ^1.0.0+1
   flutter_hooks: ^0.20.3
   flutter_markdown: ^0.6.10+3
   share_plus: ^7.2.1
   flutter_native_splash: ^2.3.7
   youtube_explode_webview: ^0.0.2
+  animations: ^3.0.0
 
 dev_dependencies:
   flutter_test:

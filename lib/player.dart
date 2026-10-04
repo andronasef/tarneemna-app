@@ -72,6 +72,11 @@ class Player {
   }
 
   static void stop() {
+    currentSongTitle.value = "";
+    currentSongId.value = "";
+    currentHymn = null;
+    isPlaying.value = false;
+    isBuffering.value = false;
     audioHandler.stop();
   }
 

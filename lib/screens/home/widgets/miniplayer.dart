@@ -1,178 +1,265 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:miniplayer/miniplayer.dart';
 import 'package:tarneemna/features/audio/presentation/widgets/full_player_view.dart';
 
 import '../../../player.dart';
 
-final MiniplayerController miniplayerController = MiniplayerController();
-
-void _collapsePlayer() => miniplayerController.animateToHeight(state: PanelState.MIN);
-
-class MiniPlayer extends StatelessWidget {
+class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
 
   @override
+  State<MiniPlayer> createState() => _MiniPlayerState();
+}
+
+class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _fadeAnimation;
+  Worker? _worker;
+  bool _isExiting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final hasSong = Player.currentSongTitle.value.isNotEmpty;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      reverseDuration: const Duration(milliseconds: 220),
+      value: hasSong ? 1.0 : 0.0,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ));
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+
+    _worker = ever<String>(Player.currentSongTitle, (title) {
+      if (!mounted) return;
+      if (title.isNotEmpty && !_isExiting) {
+        if (_controller.value < 1.0) {
+          _controller.forward();
+        }
+      } else if (title.isEmpty && !_isExiting) {
+        if (_controller.value > 0.0) {
+          _controller.reverse();
+        }
+      }
+    });
+  }
+
+  Future<void> _handleExit() async {
+    if (_isExiting) return;
+    _isExiting = true;
+    Player.pause();
+    await _controller.reverse();
+    Player.stop();
+    if (mounted) {
+      _isExiting = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _worker?.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+    return Obx(() {
+      final hasSong = Player.currentSongTitle.value.isNotEmpty;
+      if (!hasSong && _controller.value == 0.0 && !_isExiting) {
+        return const SizedBox.shrink();
+      }
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Miniplayer(
-        controller: miniplayerController,
-        minHeight: 72,
-        maxHeight: height,
-        elevation: 8,
-        curve: Curves.easeOutCubic,
-        builder: (currentHeight, percentage) {
-          final isMini = percentage < 0.2;
+      final theme = Theme.of(context);
 
-          if (!isMini) {
-            // builder runs every drag/animation frame. Lay the player out at a fixed
-            // full height and clip it, so frames only repaint instead of rebuilding
-            // and re-laying-out the whole (IntrinsicHeight) player.
-            return ClipRect(
-              child: OverflowBox(
-                alignment: Alignment.topCenter,
-                minHeight: height,
-                maxHeight: height,
-                child: const FullPlayerView(onCollapse: _collapsePlayer),
-              ),
-            );
+      return AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          if (_controller.value == 0.0 && !hasSong && !_isExiting) {
+            return const SizedBox.shrink();
           }
 
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  offset: Offset(0, -2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: InkWell(
-              onTap: () {
-                if (Player.currentSongTitle.value.isNotEmpty) {
-                  miniplayerController.animateToHeight(state: PanelState.MAX);
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Obx(
-                  () {
-                    final hasSong = Player.currentSongTitle.value.isNotEmpty;
-                    final isPlaying = Player.isPlaying.value;
-                    final isBuffering = Player.isBuffering.value;
-                    final hymn = Player.currentHymn;
-                    final singerName = hymn?.singer;
-
-                    return Row(
-                      children: [
-                        if (hasSong && hymn?.artworkUrl != null)
-                          Container(
-                            width: 44,
-                            height: 44,
-                            margin: const EdgeInsets.only(left: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.network(
-                              hymn!.artworkUrl!,
-                              fit: BoxFit.cover,
-                              cacheWidth: 100,
-                              cacheHeight: 100,
-                              errorBuilder: (_, __, ___) => Image.asset(
-                                'assets/icon.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          )
-                        else if (hasSong)
-                          Container(
-                            width: 44,
-                            height: 44,
-                            margin: const EdgeInsets.only(left: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[800],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.music_note, color: Colors.white70),
-                          ),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                hasSong
-                                    ? Player.currentSongTitle.value
-                                    : "لا توجد ترنيمة قيد التشغيل",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: hasSong ? FontWeight.w600 : FontWeight.normal,
-                                  color: hasSong ? null : Colors.grey,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (hasSong && singerName != null && singerName.isNotEmpty)
-                                Text(
-                                  singerName,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (hasSong) ...[
-                          if (isBuffering)
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          else
-                            IconButton(
-                              icon: Icon(
-                                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                size: 30,
-                              ),
-                              onPressed: () {
-                                if (isPlaying) {
-                                  Player.pause();
-                                } else {
-                                  Player.play();
-                                }
-                              },
-                            ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, size: 22),
-                            onPressed: () => Player.stop(),
-                            tooltip: "إيقاف",
-                          ),
-                        ],
-                      ],
-                    );
-                  },
+          return ClipRect(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              heightFactor: _controller.value.clamp(0.0, 1.0),
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: child,
                 ),
               ),
             ),
           );
         },
-      ),
-    );
+        child: GestureDetector(
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity != null && details.primaryVelocity! > 250) {
+              _handleExit();
+            }
+          },
+          child: OpenContainer(
+            closedElevation: 8,
+            closedShape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            closedColor: theme.cardColor,
+            openColor: theme.scaffoldBackgroundColor,
+            middleColor: theme.cardColor,
+            transitionType: ContainerTransitionType.fadeThrough,
+            transitionDuration: const Duration(milliseconds: 350),
+            useRootNavigator: true,
+            tappable: false,
+            openBuilder: (context, action) => FullPlayerView(
+              onCollapse: () => Navigator.of(context).pop(),
+            ),
+            closedBuilder: (context, openContainer) {
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: openContainer,
+                  child: Container(
+                    height: 72,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: theme.dividerColor.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Obx(
+                      () {
+                        final isPlaying = Player.isPlaying.value;
+                        final isBuffering = Player.isBuffering.value;
+                        final hymn = Player.currentHymn;
+                        final singerName = hymn?.singer;
+
+                        return Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: Row(
+                            children: [
+                              // 1. Artwork (RTL start = right side)
+                              if (hymn?.artworkUrl != null)
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  margin: const EdgeInsetsDirectional.only(end: 12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Image.network(
+                                    hymn!.artworkUrl!,
+                                    fit: BoxFit.cover,
+                                    gaplessPlayback: true,
+                                    errorBuilder: (_, __, ___) => Image.asset(
+                                      'assets/icon.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  margin: const EdgeInsetsDirectional.only(end: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[800],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.music_note, color: Colors.white70),
+                                ),
+
+                              // 2. Title & Singer in center
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      Player.currentSongTitle.value,
+                                      textAlign: TextAlign.start,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (singerName != null && singerName.isNotEmpty)
+                                      Text(
+                                        singerName,
+                                        textAlign: TextAlign.start,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                  ],
+                                ),
+                              ),
+
+                              // 3. Play/Pause & Close buttons (RTL end = left side)
+                              if (isBuffering)
+                                const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              else
+                                IconButton(
+                                  icon: Icon(
+                                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                    size: 30,
+                                  ),
+                                  onPressed: () {
+                                    if (isPlaying) {
+                                      Player.pause();
+                                    } else {
+                                      Player.play();
+                                    }
+                                  },
+                                ),
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 22),
+                                onPressed: _handleExit,
+                                tooltip: "إغلاق",
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    });
   }
 }

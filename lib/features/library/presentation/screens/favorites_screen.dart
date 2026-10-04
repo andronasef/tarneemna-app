@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -104,13 +105,14 @@ class FavoritesScreen extends ConsumerWidget {
                                   .toggleFavorite(hymn);
                             },
                           ),
-                          onTap: () => audioHandler.playHymn(hymn),
+                          onTap: () => audioHandler.playQueue(favorites, startIndex: idx),
                         );
                       },
                     ),
                   ),
                 ],
               ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }

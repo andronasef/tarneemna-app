@@ -39,12 +39,58 @@ final albumsListProvider = FutureProvider<List<Album>>((ref) async {
   return repo.getAlbums();
 });
 
+/// Fetches random singers across the entire 24 pages of the website library
+final randomizedSingersProvider = FutureProvider<List<Singer>>((ref) async {
+  final repo = ref.watch(taranimArabiaRepositoryProvider);
+  final rng = Random();
+  // Fetch from 2 distinct random pages (total 24 pages in library) to give rich variety
+  final page1 = rng.nextInt(24) + 1;
+  var page2 = rng.nextInt(24) + 1;
+  while (page2 == page1) {
+    page2 = rng.nextInt(24) + 1;
+  }
+
+  try {
+    final results = await Future.wait([
+      repo.getSingers(page: page1),
+      repo.getSingers(page: page2),
+    ]);
+    final combined = [...results[0], ...results[1]];
+    if (combined.isEmpty) {
+      return repo.getSingers(page: 1);
+    }
+    combined.shuffle(rng);
+    return combined.take(12).toList();
+  } catch (_) {
+    return repo.getSingers(page: 1);
+  }
+});
+
+/// Fetches random albums across the entire 91 pages of the website library
 final randomizedAlbumsProvider = FutureProvider<List<Album>>((ref) async {
-  final albums = await ref.watch(albumsListProvider.future);
-  if (albums.isEmpty) return const [];
-  final random = Random(DateTime.now().day + DateTime.now().month * 100);
-  final shuffled = List<Album>.from(albums)..shuffle(random);
-  return shuffled.take(12).toList();
+  final repo = ref.watch(taranimArabiaRepositoryProvider);
+  final rng = Random();
+  // Pick 2 distinct random pages from the entire catalog (91 pages total)
+  final page1 = rng.nextInt(91) + 1;
+  var page2 = rng.nextInt(91) + 1;
+  while (page2 == page1) {
+    page2 = rng.nextInt(91) + 1;
+  }
+
+  try {
+    final results = await Future.wait([
+      repo.getAlbums(page: page1),
+      repo.getAlbums(page: page2),
+    ]);
+    final combined = [...results[0], ...results[1]];
+    if (combined.isEmpty) {
+      return repo.getAlbums(page: 1);
+    }
+    combined.shuffle(rng);
+    return combined.take(12).toList();
+  } catch (_) {
+    return repo.getAlbums(page: 1);
+  }
 });
 
 final singerSongsProvider = FutureProvider.family<List<Hymn>, String>((ref, singerId) async {

@@ -1,3 +1,4 @@
+import 'package:tarneemna/screens/home/widgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tarneemna/features/audio/presentation/providers/audio_providers.dart';
@@ -150,12 +151,13 @@ class _OfflineDownloadsScreenState extends ConsumerState<OfflineDownloadsScreen>
                       itemCount: filtered.length,
                       itemBuilder: (ctx, idx) {
                         final item = filtered[idx];
-                        return _buildHymnTile(context, ref, item, audioHandler);
+                        return _buildHymnTile(context, ref, item, audioHandler, allHymns: filtered, index: idx);
                       },
                     ),
             ),
           ],
         ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }
@@ -164,8 +166,10 @@ class _OfflineDownloadsScreenState extends ConsumerState<OfflineDownloadsScreen>
     BuildContext context,
     WidgetRef ref,
     DownloadedHymn hymn,
-    dynamic audioHandler,
-  ) {
+    dynamic audioHandler, {
+    List<DownloadedHymn>? allHymns,
+    int? index,
+  }) {
     return ListTile(
       leading: Container(
         width: 48,
@@ -207,7 +211,12 @@ class _OfflineDownloadsScreenState extends ConsumerState<OfflineDownloadsScreen>
         onPressed: () => _confirmDelete(context, ref, hymn),
       ),
       onTap: () {
-        audioHandler.playHymn(hymn.toHymn());
+        if (allHymns != null && index != null) {
+          final hymns = allHymns.map((e) => e.toHymn()).toList();
+          audioHandler.playQueue(hymns, startIndex: index);
+        } else {
+          audioHandler.playHymn(hymn.toHymn());
+        }
       },
     );
   }

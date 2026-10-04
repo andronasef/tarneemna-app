@@ -1,3 +1,4 @@
+import 'package:tarneemna/features/taranim_arabia/data/sources/taranim_arabia_remote_data_source.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
@@ -13,6 +14,7 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player;
   final OfflineStorageService? _offlineStorageService;
   final PersonalLibraryService? _personalLibraryService;
+  Future<void> Function(MediaItem? currentItem)? onAutoPlay;
   int _currentIndex = -1;
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _playbackEventSubscription;
@@ -307,6 +309,34 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   Future<void> skipToNext() async {
     if (_currentIndex + 1 < queue.value.length) {
       await skipToQueueItem(_currentIndex + 1);
+    } else if (playbackState.value.repeatMode == AudioServiceRepeatMode.all && queue.value.isNotEmpty) {
+      await skipToQueueItem(0);
+    } else {
+      await _triggerAutoPlayNext();
+    }
+  }
+
+  Future<void> _triggerAutoPlayNext() async {
+    if (onAutoPlay != null) {
+      try {
+        await onAutoPlay!(mediaItem.value);
+        return;
+      } catch (e) {
+        if (kDebugMode) print('Auto-play callback error: $e');
+      }
+    }
+
+    try {
+      final remoteSource = TaranimArabiaRemoteDataSource();
+      final randomHymn = await remoteSource.getHymnOfTheDay();
+      if (randomHymn != null) {
+        final item = hymnToMediaItem(randomHymn);
+        final list = List<MediaItem>.from(queue.value)..add(item);
+        queue.add(list);
+        await skipToQueueItem(list.length - 1);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Default auto-play error: $e');
     }
   }
 
@@ -330,6 +360,14 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
+    _currentIndex = -1;
+    mediaItem.add(null);
+    playbackState.add(
+      playbackState.value.copyWith(
+        processingState: AudioProcessingState.idle,
+        playing: false,
+      ),
+    );
     await super.stop();
   }
 
