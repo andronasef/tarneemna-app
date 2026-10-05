@@ -295,7 +295,7 @@ class ModernSettingsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.star_outline),
                     title: const Text('قيّم التطبيق على المتجر',
                         style: TextStyle(fontSize: 14)),
-                    onTap: () => openUrl(AppUrls.rate),
+                    onTap: () => openUrl(AppUrls.rate, fallback: AppUrls.share),
                   ),
                   const Divider(height: 1),
                   ListTile(

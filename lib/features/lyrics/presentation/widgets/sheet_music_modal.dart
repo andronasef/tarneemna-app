@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:tarneemna/utils/open_urls.dart';
 
 class SheetMusicModal extends StatelessWidget {
   final Hymn hymn;
@@ -9,17 +9,10 @@ class SheetMusicModal extends StatelessWidget {
 
   Future<void> _openUrl(BuildContext context, String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
-    final uri = Uri.tryParse(urlString);
-    if (uri != null) {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تعذر فتح الرابط المطلوب')),
-          );
-        }
-      }
+    if (!await openUrl(urlString) && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح الرابط المطلوب')),
+      );
     }
   }
 
@@ -71,7 +64,8 @@ class SheetMusicModal extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      Icon(Icons.music_off_outlined, size: 54, color: Colors.grey[600]),
+                      Icon(Icons.music_off_outlined,
+                          size: 54, color: Colors.grey[600]),
                       const SizedBox(height: 12),
                       const Text(
                         'لا تتوفر نوتة موسيقية أو كوردات لهذه الترنيمة',
