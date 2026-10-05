@@ -1,52 +1,106 @@
-# صور المتجر — ترانيمنا
+# صور المتجر — ترنيمنا
 
-الصور الجاهزة للأندرويد في `store-screenshots/android/` (1080×1920، نسبة 9:16 لـ Google Play).
-اللقطات الخام من التطبيق في `store-screenshots/raw/`، والتركيب بيتعمل بـ `store-screenshots/build.py`.
+الصور المجهزة للمتاجر (Google Play و App Store):
+- **iOS Mobile (iPhone 6.9")**: في `store-screenshots/ios/` بمقاس **1320×2868** (App Store إلزامي). التركيب بـ `store-screenshots/build_ios.py`.
+- **iOS Tablet (iPad 13")**: في `store-screenshots/ipad/` بمقاس **2064×2752** (App Store iPad إلزامي). التركيب بـ `store-screenshots/build_ipad.py`.
+- **Android (Google Play)**: في `store-screenshots/android/` بمقاس **1080×1920** (نسبة 9:16). التركيب بـ `store-screenshots/build.py`.
+
+اللقطات الخام من التطبيق موجودة في `store-screenshots/raw/`، `store-screenshots/raw-ios/`، و `store-screenshots/raw-ipad/`.
+
+---
 
 ## الستايل
-- خلفية متدرجة برتقالي من لون التطبيق، وعنوان أبيض بخط **Tajawal ExtraBold** مع سطر شرح بـ Tajawal Medium.
-- إطار موبايل أسود بيطلع من تحت وبيتقص عند حافة الصورة. شريط الحالة بتاع المحاكي متقصوص من اللقطة.
-- النصوص بالمصري، والاتجاه RTL.
+- **الخلفية**: تدرج برتقالي دافئ من هوية التطبيق (`#ff9a56` إلى `#ff5733` ثم `#d63a1b`) مع كرات إضاءة ناعمة (blobs).
+- **العناوين**: أبيض بخط **Tajawal ExtraBold** مع سطر شرح توضيحي بخط **Tajawal Medium**.
+- **إطار الجهاز**:
+  - **iPhone**: إطار أسود بحواف دائرية فخمة (`border-radius: 132px`) ومحاذاة تعزل شريط الحالة العلوي بدقة.
+  - **iPad**: إطار تابلت متناسق الحواف (`border-radius: 64px`) مخصص لشاشات iPad الكبيرة.
+  - **Android**: إطار موبايل أسود أنيق مع زوايا دائرية وظلال عميقة.
+- **اللغة والاتجاه**: النصوص باللهجة المصرية المحببة مع دعم كامل لاتجاه اليمين لليسار (RTL).
 
-## الأندرويد (جاهز)
+---
+
+## 1. شاشات iOS Mobile — iPhone 6.9" (جاهز)
+> المقاس: **1320×2868** | المجلد: `store-screenshots/ios/`
 
 | # | الملف | العنوان | الشرح | الشاشة |
 |---|---|---|---|---|
 | 1 | `01-search.png` | ابحث عن الترانيم بسهولة 🔍 | اكتب أي كلمة من الترنيمة وهتلاقيها في ثواني | الرئيسية بعد البحث عن «يسوع» |
-| 2 | `02-player.png` | كل يوم ترنيمة جديدة 🎶 | مشغّل بسيط ومريح يعيشك جو العبادة | المشغّل الكامل |
+| 2 | `02-player.png` | كل يوم ترنيمة جديدة 🎵 | مشغّل بسيط ومريح يعيشك جو العبادة | المشغّل الكامل مع أزرار التحكم والكلمات |
+| 3 | `03-downloads.png` | حمّل ترانيمك واسمعها من غير نت 📥 | ترانيمك معاك في أي مكان، حتى من غير إنترنت | الترانيم المحملة في الذاكرة المحلية |
+| 4 | `04-playlists.png` | نظّم مكتبة ترانيمك 📚 | اعمل قوائمك الخاصة: صباح، صوم، أعياد، تسبيح | قوائم التشغيل الخاصة بالمستخدم |
+
+---
+
+## 2. شاشات iOS Tablet — iPad 13" (جاهز)
+> المقاس: **2064×2752** | المجلد: `store-screenshots/ipad/`
+
+| # | الملف | العنوان | الشرح | الشاشة |
+|---|---|---|---|---|
+| 1 | `01-search.png` | ابحث عن الترانيم بسهولة 🔍 | اكتب أي كلمة من الترنيمة وهتلاقيها في ثواني | الرئيسية مع واجهة الآيباد المتسعة والبحث |
+| 2 | `02-player.png` | كل يوم ترنيمة جديدة 🎵 | مشغّل بسيط ومريح يعيشك جو العبادة | مشغّل الآيباد مع تفاصيل الترنيمة |
+| 3 | `03-downloads.png` | حمّل ترانيمك واسمعها من غير نت 📥 | ترانيمك معاك في أي مكان، حتى من غير إنترنت | مكتبة الترانيم بدون إنترنت |
+| 4 | `04-playlists.png` | نظّم مكتبة ترانيمك 📚 | اعمل قوائمك الخاصة: صباح، صوم، أعياد، تسبيح | مجموعات وقوائم التشغيل |
+
+---
+
+## 3. شاشات Android — Google Play (جاهز)
+> المقاس: **1080×1920** (9:16) | المجلد: `store-screenshots/android/`
+
+| # | الملف | العنوان | الشرح | الشاشة |
+|---|---|---|---|---|
+| 1 | `01-search.png` | ابحث عن الترانيم بسهولة 🔍 | اكتب أي كلمة من الترنيمة وهتلاقيها في ثواني | الرئيسية بعد البحث عن «يسوع» |
+| 2 | `02-player.png` | كل يوم ترنيمة جديدة 🎵 | مشغّل بسيط ومريح يعيشك جو العبادة | المشغّل الكامل |
 | 3 | `03-downloads.png` | حمّل ترانيمك واسمعها من غير نت 📥 | ترانيمك معاك في أي مكان، حتى من غير إنترنت | الترانيم المحملة (10 ترانيم) |
-| 4 | `04-playlists.png` | نظّم مكتبة ترانيمك 📚 | اعمل قوايمك الخاصة: صباح، صوم، أعياد، تسبيح | قوائم التشغيل (6 قوائم) |
+| 4 | `04-playlists.png` | نظّم مكتبة ترانيمك 📚 | اعمل قوائمك الخاصة: صباح، صوم، أعياد، تسبيح | قوائم التشغيل (6 قوائم) |
 
-### إزاي تعيد التصوير أو تغيّر النص
-1. غيّر العنوان أو الشرح في `SLIDES` جوه `build.py`، أو بدّل الصورة الخام في `raw/`.
-2. شغّل `python3 store-screenshots/build.py`. محتاج Microsoft Edge، أو حدد متصفح تاني بالمتغير `CHROME`.
+---
 
-### إزاي اتصوّرت اللقطات
-- محاكي أندرويد 1080×2400، وشريط الحالة نضيف (`adb shell am broadcast -a com.android.systemui.demo ...`، الساعة 9:41).
-- اللقطات بـ `adb shell screencap -p` على بناء debug من الكود الحالي، وبـ data حقيقية من النت.
-- صفحة التحميلات: حمّلت 5 ترانيم من ألبوم «مشيئتك» بزرار التحميل جوه الألبوم، والباقي من البحث.
-- القوائم: عملت 6 قوائم وحطيت في كل واحدة 2–3 ترانيم من المشغّل.
+## إزاي تعيد الإنشاء أو تعدل النصوص
 
-## iOS (خطة للمستقبل، لسه ما اتنفذتش)
+1. **لتعديل النصوص والعناوين**:
+   - غيّر العناوين في قائمة `SLIDES` داخل ملفات البناء:
+     - لـ iOS Mobile: `store-screenshots/build_ios.py`
+     - لـ iPad: `store-screenshots/build_ipad.py`
+     - لـ Android: `store-screenshots/build.py`
+2. **للتشغيل وإنشاء الصور**:
+   - لـ iOS Mobile: `python3 store-screenshots/build_ios.py`
+   - لـ iPad: `python3 store-screenshots/build_ipad.py`
+   - لـ Android: `python3 store-screenshots/build.py`
+   *(السكربتات بتستخدم Microsoft Edge افتراضياً أو المتصفح المحدد بالمتغير `CHROME`)*.
 
-نفس الـ4 صور بنفس العناوين، بس بمقاسات App Store:
+---
 
-| الجهاز | المقاس المطلوب | محاكي مقترح |
-|---|---|---|
-| iPhone 6.9" (إلزامي) | 1320×2868 | iPhone 18 Pro Max (موجود عندك) |
-| iPhone 6.5" (اختياري لو الـ6.9 موجود) | 1284×2778 | iPhone 17 / Air |
-| iPad 13" (لو التطبيق بيدعم iPad) | 2064×2752 | iPad Pro 13-inch (M5) |
+## إزاي اتصوّرت اللقطات على المحاكيات
 
-خطوات التنفيذ بعد ما نسخة iOS تجهز:
-1. شغّل المحاكي وظبّط شريط الحالة: `xcrun simctl status_bar booted override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3`.
-2. صوّر نفس الشاشات الأربعة بالترتيب (بحث، مشغّل، تحميلات، قوائم) بـ `xcrun simctl io booted screenshot raw-ios/0X-name.png`.
-3. انسخ `build.py` لـ `build_ios.py` وغيّر `W, H = 1320, 2868` والمجلد الناتج لـ `ios/`.
-   - إطار iPhone له Dynamic Island وزوايا أكبر: كبّر `border-radius` وقص الشاشة من فوق عشان مايظهرش الـ status bar.
-   - الصور الخام أطول من أندرويد، فظبّط `.phone{top}` و`width` عشان الجزء الظاهر من الشاشة يفضل حوالي 80%.
-4. ارفع الصور في App Store Connect تحت كل مقاس. أول صورة هي اللي بتظهر في نتايج البحث، فخلّيها صورة البحث.
+### أ. محاكي iOS (iPhone 18 Pro Max & iPad Pro 13-inch)
+1. **تظبيط شريط الحالة النظيف (Clean Status Bar)**:
+   ```bash
+   xcrun simctl status_bar booted override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
+   ```
+2. **التقاط اللقطات**:
+   ```bash
+   # للآيفون
+   xcrun simctl io booted screenshot store-screenshots/raw-ios/0X-name.png
+   # للآيباد
+   xcrun simctl io booted screenshot store-screenshots/raw-ipad/0X-name.png
+   ```
 
-نصيحة لـ App Store: اقصى حد 10 صور لكل مقاس. لو عايز تزوّد، الأفكار المتاحة: الكلمات (lyrics)، مؤقت النوم، المفضلة.
+### ب. محاكي Android
+1. **تظبيط شريط الحالة**:
+   ```bash
+   adb shell am broadcast -a com.android.systemui.demo -e command enter
+   adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941
+   adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+   ```
+2. **التقاط اللقطات**:
+   ```bash
+   adb shell screencap -p > store-screenshots/raw/0X-name.png
+   ```
 
-## ملاحظات على التطبيق (لاحظتها وقت التصوير)
-- التحميل من نتايج البحث كان بيروح لمجلد `Download` العام ومش بيظهر في «الترانيم المحملة». اتصلّح، وبقى بيستخدم نفس تحميل الألبوم والمشغّل.
-- مفيش `keystore` للـ release في الجهاز ده، فبنيت نسخة debug (`flutter build apk --release` بيفشل بـ `SigningConfig "release" is missing required property "storeFile"`).
+---
+
+## رفع الصور لـ App Store Connect
+- تحت **iOS App**: اختر قسم **6.9" Display** وارفع الصور الأربعة من `store-screenshots/ios/`.
+- تحت **iPad App**: اختر قسم **13" Display** وارفع الصور الأربعة من `store-screenshots/ipad/`.
+- أول صورة (`01-search.png`) هي الصورة الأساسية التي تظهر في نتائج البحث بمتجر التطبيقات.
