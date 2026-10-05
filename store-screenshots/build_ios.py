@@ -30,7 +30,7 @@ p{{font-weight:500;font-size:52px;margin-top:28px;opacity:.93}}
 .phone{{position:absolute;top:640px;left:150px;width:1020px;padding:22px;background:#101012;
   border-radius:132px;box-shadow:0 50px 110px rgba(90,15,0,.45),inset 0 0 0 4px #2b2b30}}
 .scr{{overflow:hidden;border-radius:110px}}
-.phone img{{display:block;width:100%;margin-top:-64px}}  /* crops status bar */
+.phone img{{display:block;width:100%;margin-top:0}}
 </style><body><div class="stage">
 <div class="blob" style="width:950px;height:950px;top:-380px;right:-320px"></div>
 <div class="blob" style="width:680px;height:680px;top:1200px;left:-380px"></div>
@@ -58,9 +58,8 @@ for raw, title, sub in SLIDES:
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for _ in range(120):
         time.sleep(0.5)
-        if out.exists() and out.stat().st_size > 0 and p.poll() is None:
-            time.sleep(1); break
-        if p.poll() is not None: break
+        if out.exists() and out.stat().st_size > 50000:
+            break
     p.kill()
-    page.unlink()
-    print("wrote", out)
+    page.unlink(missing_ok=True)
+    print(f"wrote {out}")
