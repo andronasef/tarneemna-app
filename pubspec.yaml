@@ -43,6 +43,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   http_mock_adapter: ^0.6.1
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path: "assets/ios_icon_1024.png"
+  remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#FF6A4A"

@@ -34,6 +34,7 @@
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>audio</string>
+			<string>fetch</string>
 		</array>
 		<key>NSAppTransportSecurity</key>
 		<dict>
@@ -46,6 +47,17 @@
 		<string>يستخدم التطبيق التعرف على الصوت للبحث الصوتي عن الترانيم.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>لحفظ بطاقات اقتباسات الترانيم في معرض الصور.</string>
+		<key>FDMaximumConcurrentTasks</key>
+		<integer>5</integer>
+		<key>FDAllFilesDownloadedMessage</key>
+		<string>تم تحميل جميع الترانيم بنجاح</string>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>https</string>
+			<string>http</string>
+			<string>mailto</string>
+			<string>tel</string>
+		</array>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>

@@ -66,7 +66,12 @@ Future<void> main(List<String> args) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FlutterDownloader.initialize(debug: kDebugMode);
+
+  try {
+    await FlutterDownloader.initialize(debug: kDebugMode);
+  } catch (e) {
+    if (kDebugMode) print('FlutterDownloader initialization note: $e');
+  }
 
   Net.init();
 
