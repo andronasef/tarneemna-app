@@ -1,4 +1,4 @@
-# Traneemna — تحميل ترانيم
+# Traneemna — ترانيمنا
 
 <a href="https://play.google.com/store/apps/details?id=com.increase.tarneemna&referrer=utm_source%3Dmy-github-apppage">
 <img width="80%" src="https://i.postimg.cc/0ymj0wbZ/feature-Graphic.png" />

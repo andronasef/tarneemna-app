@@ -3,7 +3,7 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [2.0.0] - 2026-10-05
 
 ### Added
 - Settings: follow the system light/dark mode, plus a themed input style used across the app.
@@ -50,7 +50,6 @@ A rewrite of the app around a feature-first, Riverpod-based architecture.
 - Smart Arabic search, favorites, playlists and listening history.
 - OLED black theme, spiritual accent colors and accessibility font scaling.
 - Android home screen widget.
-- New app name: تحميل ترانيم.
 
 ### Fixed
 - Hymn audio streaming and downloading, search UI, performance lag and startup jank.

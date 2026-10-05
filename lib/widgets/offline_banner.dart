@@ -59,7 +59,7 @@ class _OfflineBannerState extends ConsumerState<OfflineBanner> {
                   context,
                   MaterialPageRoute(builder: (_) => const OfflineDownloadsScreen()),
                 ),
-                child: const Text('الترانيم المحملة', style: TextStyle(fontSize: 12)),
+                child: const Text('تصفح الترانيم المحملة', style: TextStyle(fontSize: 12)),
               ),
             ],
           ),

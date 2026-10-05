@@ -1,4 +1,4 @@
-# صور المتجر — تحميل ترانيم
+# صور المتجر — ترانيمنا
 
 الصور الجاهزة للأندرويد في `store-screenshots/android/` (1080×1920، نسبة 9:16 لـ Google Play).
 اللقطات الخام من التطبيق في `store-screenshots/raw/`، والتركيب بيتعمل بـ `store-screenshots/build.py`.
