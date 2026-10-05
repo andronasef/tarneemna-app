@@ -7,6 +7,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:just_audio/just_audio.dart';
+import 'package:tarneemna/core/connectivity.dart';
 import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/library/data/sources/personal_library_service.dart';
@@ -281,6 +282,10 @@ class TarneemnaAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   void _reportPlaybackError(MediaItem item) {
+    if (!Net.online.value) {
+      showCustomSnackbar('لا يوجد اتصال', 'حمّل الترنيمة أولاً لتشغيلها بدون إنترنت', Icons.wifi_off);
+      return;
+    }
     showCustomSnackbar('تعذر التشغيل', 'لم نتمكن من تشغيل «${item.title}»', Icons.error_outline);
   }
 

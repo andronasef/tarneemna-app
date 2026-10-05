@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/features/search/data/sources/search_history_service.dart';
 
+import 'package:tarneemna/core/connectivity.dart';
+import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
+
 import '../../tarnemma.dart';
 import '../../widgets/snackbar.dart';
 
@@ -73,7 +76,17 @@ class HomeController extends GetxController {
       // Record query in search history
       await _searchHistoryService.addQuery(queryText);
       recentSearchTick.value++;
-      final results = await Tarnemma.search(queryText);
+      final offline = !Net.online.value;
+      final results = offline
+          ? Tarnemma.filterDownloaded(OfflineStorageService().getDownloadedHymns(), queryText)
+          : await Tarnemma.search(queryText);
+      if (offline && results.isEmpty) {
+        showCustomSnackbar(
+          "لا يوجد اتصال",
+          "لا توجد نتائج بين الترانيم المحملة، اتصل بالإنترنت للبحث",
+          Icons.wifi_off,
+        );
+      }
       if (kDebugMode) print("Results received: ${results.length}");
       traneem.assignAll(results);
     } catch (e) {

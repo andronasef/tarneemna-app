@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:tarneemna/features/downloads/data/sources/download_manager_service.dart';
 import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
+import 'package:tarneemna/features/downloads/domain/entities/downloaded_hymn.dart';
 import 'package:tarneemna/features/hymns/data/repositories/hybrid_hymns_repository_impl.dart';
 import 'package:tarneemna/features/hymns/domain/entities/hymn.dart';
 import 'package:tarneemna/features/taranim_arabia/data/repositories/taranim_arabia_repository_impl.dart';
@@ -96,6 +97,16 @@ class Tarnemma {
       if (kDebugMode) print("Hybrid search error, falling back to YouTube: $e");
       return _searchYouTubeOnly(query);
     }
+  }
+
+  /// Offline search: only downloaded hymns can play without a connection.
+  static List<Tarnemma> filterDownloaded(List<DownloadedHymn> downloaded, String query) {
+    final q = HybridHymnsRepositoryImpl.normalizeTitle(query);
+    return [
+      for (final d in downloaded)
+        if (HybridHymnsRepositoryImpl.normalizeTitle('${d.title} ${d.singer ?? ''}').contains(q))
+          Tarnemma.fromHymn(d.toHymn()),
+    ];
   }
 
   static Future<List<Tarnemma>> _searchYouTubeOnly(String query) async {

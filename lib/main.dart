@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
+import 'core/connectivity.dart';
 import 'features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'features/audio/presentation/providers/audio_providers.dart';
 import 'features/downloads/data/sources/offline_storage_service.dart';
@@ -66,6 +67,8 @@ Future<void> main(List<String> args) async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FlutterDownloader.initialize(debug: kDebugMode);
+
+  Net.init();
 
   // YouTube JS solver boots a WebView; don't block first frame on it.
   unawaited(YouTubeAudioResolver.init());

@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tarneemna/core/values.dart';
+import 'package:tarneemna/features/downloads/domain/entities/downloaded_hymn.dart';
 import 'package:tarneemna/tarnemma.dart';
 
 void main() {
   test('App constants validation', () {
-    expect(AppDetails.kAppName, 'تحميل ترانيم');
+    expect(AppDetails.kAppName, 'ترانيمنا');
     expect(AppDetails.kAppPackageName, 'com.increase.tarneemna');
   });
 
@@ -34,5 +35,19 @@ void main() {
     expect(t.duration, '04:15');
     expect(t.downloadUrl, isNull);
     expect(t.isResolvingStream.value, false);
+  });
+
+  test('Tarnemma.filterDownloaded matches title or singer, ignoring diacritics', () {
+    final d = DownloadedHymn(
+      id: '1',
+      title: 'يا صاحب الحنان',
+      singer: 'مرنم',
+      localFilePath: '/tmp/1.mp3',
+      fileSizeBytes: 1,
+      downloadedAt: DateTime(2026),
+    );
+    expect(Tarnemma.filterDownloaded([d], 'الحَنان').map((t) => t.id), ['1']);
+    expect(Tarnemma.filterDownloaded([d], 'مرنم').map((t) => t.id), ['1']);
+    expect(Tarnemma.filterDownloaded([d], 'شيء آخر'), isEmpty);
   });
 }

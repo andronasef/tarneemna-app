@@ -5,6 +5,7 @@ import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/features/downloads/presentation/screens/offline_downloads_screen.dart';
 import 'package:tarneemna/features/settings/presentation/screens/settings_screen.dart';
 
+import '../../widgets/offline_banner.dart';
 import 'home_controller.dart';
 import 'widgets/miniplayer.dart';
 import 'widgets/tarnema_search.dart';
@@ -60,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       title: const Text(AppDetails.kAppName),
                     ),
+                    const OfflineBanner(),
                     const SizedBox(height: 4),
                     TarnemaSearch(controller: controller),
                     const SizedBox(height: 8),
