@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.1] - 2026-10-05
+
+### Added
+- Official native iOS support (`ios/`) with background audio playback capability and audio session configuration.
+- Native tactile haptic feedback across player controls, seeker bar scrubbing, favorites, and playlists.
+- Adaptive UI elements including Cupertino activity indicator and edge-to-edge safe area styling under the iOS Home Indicator.
+
+### Fixed
+- Firebase project configuration for Android and iOS (`tarneemna-91611`), resolving missing iOS configuration and unsupported platform errors.
+
 ## [2.0.0] - 2026-10-05
 
 ### Added

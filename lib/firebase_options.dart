@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -53,10 +50,18 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB6jEtsSmLXaH1iCGXgwNZ1wCp86CLjNes',
-    appId: '1:799396486646:android:864c877f7c224de0eabbd7',
-    messagingSenderId: '799396486646',
-    projectId: 'tarneemna',
-    storageBucket: 'tarneemna.appspot.com',
+    apiKey: 'AIzaSyC7VX71iEDwb53mR5zfQtDOEky0QoGQBFc',
+    appId: '1:690516234524:android:fe091cc22009a5532eead9',
+    messagingSenderId: '690516234524',
+    projectId: 'tarneemna-91611',
+    storageBucket: 'tarneemna-91611.firebasestorage.app',
+  );
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCDuNwCJBK-WLEP3_-hxNiZOvbEJBJjduI',
+    appId: '1:690516234524:ios:e08d237c8767e1892eead9',
+    messagingSenderId: '690516234524',
+    projectId: 'tarneemna-91611',
+    storageBucket: 'tarneemna-91611.firebasestorage.app',
+    iosBundleId: 'com.increase.tarneemna',
   );
 }

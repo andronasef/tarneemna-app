@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:tarneemna/features/downloads/presentation/providers/download_providers.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -248,6 +249,7 @@ class FullPlayerView extends ConsumerWidget {
                                       ? 'إزالة من المفضلة'
                                       : 'إضافة للمفضلة',
                                   onPressed: () async {
+                                    HapticFeedback.mediumImpact();
                                     await ref
                                         .read(favoritesListProvider.notifier)
                                         .toggleFavorite(currentHymn);
@@ -346,6 +348,7 @@ class FullPlayerView extends ConsumerWidget {
                                           : Colors.grey,
                                     ),
                                     onPressed: () {
+                                      HapticFeedback.selectionClick();
                                       final next = playbackState?.shuffleMode ==
                                               AudioServiceShuffleMode.all
                                           ? AudioServiceShuffleMode.none
@@ -358,13 +361,16 @@ class FullPlayerView extends ConsumerWidget {
                                     icon: const Icon(
                                         Icons.skip_previous_rounded,
                                         size: 36),
-                                    onPressed: () =>
-                                        audioHandler.skipToPrevious(),
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      audioHandler.skipToPrevious();
+                                    },
                                   ),
                                   // Play / Pause FAB
                                   FloatingActionButton.large(
                                     elevation: 4,
                                     onPressed: () {
+                                      HapticFeedback.lightImpact();
                                       if (isPlaying) {
                                         audioHandler.pause();
                                       } else {
@@ -382,7 +388,10 @@ class FullPlayerView extends ConsumerWidget {
                                   IconButton(
                                     icon: const Icon(Icons.skip_next_rounded,
                                         size: 36),
-                                    onPressed: () => audioHandler.skipToNext(),
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      audioHandler.skipToNext();
+                                    },
                                   ),
                                   // Repeat Mode
                                   IconButton(
@@ -399,6 +408,7 @@ class FullPlayerView extends ConsumerWidget {
                                           : Colors.grey,
                                     ),
                                     onPressed: () {
+                                      HapticFeedback.selectionClick();
                                       final mode = playbackState?.repeatMode;
                                       final next = mode ==
                                               AudioServiceRepeatMode.none
@@ -521,6 +531,7 @@ class FullPlayerView extends ConsumerWidget {
               ...speeds.map((s) => ListTile(
                     title: Text('${s}x', textAlign: TextAlign.center),
                     onTap: () {
+                      HapticFeedback.selectionClick();
                       audioHandler.setSpeed(s);
                       Navigator.pop(ctx);
                     },
@@ -556,6 +567,7 @@ class FullPlayerView extends ConsumerWidget {
                     'إلغاء المؤقت (متبقي ${timerState.remainingTime != null ? (timerState.remainingTime!.inSeconds / 60).ceil() : 0} دقيقة)',
                   ),
                   onTap: () {
+                    HapticFeedback.selectionClick();
                     timerNotifier.cancelTimer();
                     Navigator.pop(ctx);
                   },
@@ -565,6 +577,7 @@ class FullPlayerView extends ConsumerWidget {
                   leading: const Icon(Icons.timer),
                   title: Text('$mins دقيقة'),
                   onTap: () {
+                    HapticFeedback.selectionClick();
                     timerNotifier.setTimerMinutes(mins);
                     Navigator.pop(ctx);
                   },
@@ -600,6 +613,7 @@ class FullPlayerView extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () {
+              HapticFeedback.selectionClick();
               abNotifier.setPointA(currentPos);
               Navigator.pop(ctx);
             },
@@ -607,6 +621,7 @@ class FullPlayerView extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
+              HapticFeedback.selectionClick();
               abNotifier.setPointB(currentPos);
               Navigator.pop(ctx);
             },
@@ -614,6 +629,7 @@ class FullPlayerView extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
+              HapticFeedback.selectionClick();
               abNotifier.clear();
               Navigator.pop(ctx);
             },
@@ -647,6 +663,7 @@ class FullPlayerView extends ConsumerWidget {
                       title: Text(p.name),
                       subtitle: Text('${p.hymns.length} ترنيمة'),
                       onTap: () async {
+                        HapticFeedback.selectionClick();
                         await ref
                             .read(playlistsListProvider.notifier)
                             .addHymn(p.id, currentHymn);
@@ -706,6 +723,7 @@ class _SeekBarState extends ConsumerState<_SeekBar> {
             max: maxSec > 0 ? maxSec : 1.0,
             onChanged: (val) => setState(() => _dragSec = val),
             onChangeEnd: (val) {
+              HapticFeedback.selectionClick();
               widget.audioHandler.seek(Duration(seconds: val.toInt()));
               setState(() => _dragSec = null);
             },

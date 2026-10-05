@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:tarneemna/features/audio/presentation/widgets/full_player_view.dart';
 
@@ -68,6 +69,7 @@ class _MiniPlayerState extends State<MiniPlayer>
   }
 
   void _openFullPlayer() {
+    HapticFeedback.selectionClick();
     Get.to(
       () => FullPlayerView(
         onCollapse: () => Get.back(),
@@ -128,6 +130,7 @@ class _MiniPlayerState extends State<MiniPlayer>
         duration: const Duration(milliseconds: 200), curve: Curves.easeOutCubic);
     if (open && mounted) {
       // Same full-screen content, so swap the overlay for a real route (back button works).
+      HapticFeedback.selectionClick();
       Get.to(
         () => FullPlayerView(onCollapse: () => Get.back()),
         transition: Transition.noTransition,
@@ -146,6 +149,7 @@ class _MiniPlayerState extends State<MiniPlayer>
   Future<void> _handleExit() async {
     if (_isExiting) return;
     _isExiting = true;
+    HapticFeedback.lightImpact();
     Player.pause();
     await _controller.reverse();
     Player.stop();
@@ -315,7 +319,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                                 width: 24,
                                 height: 24,
                                 child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                    CircularProgressIndicator.adaptive(strokeWidth: 2),
                               )
                             else
                               IconButton(
@@ -326,6 +330,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                                   size: 30,
                                 ),
                                 onPressed: () {
+                                  HapticFeedback.lightImpact();
                                   if (isPlaying) {
                                     Player.pause();
                                   } else {
