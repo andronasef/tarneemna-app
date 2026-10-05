@@ -5,7 +5,10 @@
 - **iOS Tablet (iPad 13")**: في `store-screenshots/ipad/` بمقاس **2064×2752** (App Store iPad إلزامي). التركيب بـ `store-screenshots/build_ipad.py`.
 - **Android (Google Play)**: في `store-screenshots/android/` بمقاس **1080×1920** (نسبة 9:16). التركيب بـ `store-screenshots/build.py`.
 
-اللقطات الخام من التطبيق موجودة في `store-screenshots/raw/`، `store-screenshots/raw-ios/`، و `store-screenshots/raw-ipad/`.
+اللقطات الخام تم التقاطها مباشرة من المحاكيات الحقيقية وموجودة في:
+- `store-screenshots/raw-ios/` (iPhone 18 Pro Max - 1320×2868)
+- `store-screenshots/raw-ipad/` (iPad Pro 13-inch - 2064×2752)
+- `store-screenshots/raw/` (Android - 1080×1920)
 
 ---
 
@@ -13,8 +16,8 @@
 - **الخلفية**: تدرج برتقالي دافئ من هوية التطبيق (`#ff9a56` إلى `#ff5733` ثم `#d63a1b`) مع كرات إضاءة ناعمة (blobs).
 - **العناوين**: أبيض بخط **Tajawal ExtraBold** مع سطر شرح توضيحي بخط **Tajawal Medium**.
 - **إطار الجهاز**:
-  - **iPhone**: إطار أسود بحواف دائرية فخمة (`border-radius: 132px`) ومحاذاة تعزل شريط الحالة العلوي بدقة.
-  - **iPad**: إطار تابلت متناسق الحواف (`border-radius: 64px`) مخصص لشاشات iPad الكبيرة.
+  - **iPhone**: إطار أسود بحواف دائرية فخمة (`border-radius: 132px`) مع لقطات شاشة أصلية من محاكي iPhone بنسبة 1:1 وشريط حالة نقي 9:41.
+  - **iPad**: إطار تابلت متناسق الحواف (`border-radius: 64px`) مخصص ومقاس لشاشات iPad 13" الكبيرة.
   - **Android**: إطار موبايل أسود أنيق مع زوايا دائرية وظلال عميقة.
 - **اللغة والاتجاه**: النصوص باللهجة المصرية المحببة مع دعم كامل لاتجاه اليمين لليسار (RTL).
 
@@ -56,51 +59,28 @@
 
 ---
 
-## إزاي تعيد الإنشاء أو تعدل النصوص
+## كيفية تشغيل الالتقاط التلقائي وبناء البانرات
 
-1. **لتعديل النصوص والعناوين**:
-   - غيّر العناوين في قائمة `SLIDES` داخل ملفات البناء:
-     - لـ iOS Mobile: `store-screenshots/build_ios.py`
-     - لـ iPad: `store-screenshots/build_ipad.py`
-     - لـ Android: `store-screenshots/build.py`
-2. **للتشغيل وإنشاء الصور**:
-   - لـ iOS Mobile: `python3 store-screenshots/build_ios.py`
-   - لـ iPad: `python3 store-screenshots/build_ipad.py`
-   - لـ Android: `python3 store-screenshots/build.py`
-   *(السكربتات بتستخدم Microsoft Edge افتراضياً أو المتصفح المحدد بالمتغير `CHROME`)*.
+### 1. التقاط لقطات الشاشة الأصلية من محاكيات iOS (Automated Simulator Capture):
+تم بناء سكريبت أوتوماتيكي يقوم بضبط شريط الحالة النظيف (9:41)، تشغيل التطبيق بالبيانات التجريبية المحملة مسبقاً (`lib/screenshot_runner.dart`)، والتنقل بين الشاشات الأربعة مع التقاط الشاشات بجودة أصلية عبر `xcrun simctl io`:
+```bash
+# التقاط الآيفون والآيباد معاً
+python3 scripts/capture_simulators.py both
 
----
+# أو كل محاكي منفرداً:
+python3 scripts/capture_simulators.py iphone
+python3 scripts/capture_simulators.py ipad
+```
 
-## إزاي اتصوّرت اللقطات على المحاكيات
+### 2. تركيب البانرات النهائية للمتاجر:
+```bash
+# بناء صور آيفون (App Store 6.9" - 1320×2868)
+python3 store-screenshots/build_ios.py
 
-### أ. محاكي iOS (iPhone 18 Pro Max & iPad Pro 13-inch)
-1. **تظبيط شريط الحالة النظيف (Clean Status Bar)**:
-   ```bash
-   xcrun simctl status_bar booted override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
-   ```
-2. **التقاط اللقطات**:
-   ```bash
-   # للآيفون
-   xcrun simctl io booted screenshot store-screenshots/raw-ios/0X-name.png
-   # للآيباد
-   xcrun simctl io booted screenshot store-screenshots/raw-ipad/0X-name.png
-   ```
+# بناء صور آيباد (App Store 13" - 2064×2752)
+python3 store-screenshots/build_ipad.py
 
-### ب. محاكي Android
-1. **تظبيط شريط الحالة**:
-   ```bash
-   adb shell am broadcast -a com.android.systemui.demo -e command enter
-   adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941
-   adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
-   ```
-2. **التقاط اللقطات**:
-   ```bash
-   adb shell screencap -p > store-screenshots/raw/0X-name.png
-   ```
-
----
-
-## رفع الصور لـ App Store Connect
-- تحت **iOS App**: اختر قسم **6.9" Display** وارفع الصور الأربعة من `store-screenshots/ios/`.
-- تحت **iPad App**: اختر قسم **13" Display** وارفع الصور الأربعة من `store-screenshots/ipad/`.
-- أول صورة (`01-search.png`) هي الصورة الأساسية التي تظهر في نتائج البحث بمتجر التطبيقات.
+# بناء صور أندرويد (Google Play - 1080×1920)
+python3 store-screenshots/build.py
+```
+*(السكربتات بتستخدم Microsoft Edge أو المتصفح المحدد بالمتغير `CHROME`)*.
