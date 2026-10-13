@@ -38,6 +38,10 @@
 			<string>audio</string>
 			<string>fetch</string>
 		</array>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>لا يستخدم ترانيمنا الميكروفون حاليًا؛ هذا الإذن مُعلَن فقط لأن مكتبة الأذونات المستخدمة تشير إليه.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>لا يستخدم ترانيمنا التعرف على الصوت حاليًا؛ هذا الإذن مُعلَن فقط لأن مكتبة الأذونات المستخدمة تشير إليه.</string>
 		<key>FDMaximumConcurrentTasks</key>
 		<integer>5</integer>
 		<key>FDAllFilesDownloadedMessage</key>
