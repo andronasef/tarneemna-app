@@ -10,12 +10,16 @@ class YouTubeAudioResolver {
   static WebviewEJSSolver? _jsSolver;
   static YoutubeExplode? _yt;
 
+  /// Off on iOS: App Store guidelines 5.2.2/5.2.3 forbid extracting YouTube streams.
+  static bool get enabled => defaultTargetPlatform != TargetPlatform.iOS;
+
   static YoutubeExplode get yt {
     _yt ??= YoutubeExplode(jsSolver: _jsSolver);
     return _yt!;
   }
 
   static Future<void> init() async {
+    if (!enabled) return;
     try {
       _jsSolver = await WebviewEJSSolver.init();
       _yt = YoutubeExplode(jsSolver: _jsSolver);
@@ -115,6 +119,7 @@ class YouTubeAudioResolver {
 
   /// Get playable audio stream URL (with fallback to youtube_explode)
   static Future<String?> getAudioUrl(String videoId) async {
+    if (!enabled) return null;
     final vUrl = await resolveVisionOsAudio(videoId);
     if (vUrl != null && vUrl.isNotEmpty) {
       return vUrl;
@@ -142,7 +147,7 @@ class YouTubeAudioResolver {
   /// Search YouTube and return Hymn domain entities
   static Future<List<Hymn>> searchVideos(String query) async {
     final List<Hymn> list = [];
-    if (query.trim().isEmpty) return list;
+    if (!enabled || query.trim().isEmpty) return list;
 
     try {
       final searchList = await yt.search.search(query);

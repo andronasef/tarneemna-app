@@ -29,6 +29,8 @@
 			<string>ar</string>
 			<string>en</string>
 		</array>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIBackgroundModes</key>
@@ -36,17 +38,6 @@
 			<string>audio</string>
 			<string>fetch</string>
 		</array>
-		<key>NSAppTransportSecurity</key>
-		<dict>
-			<key>NSAllowsArbitraryLoads</key>
-			<true/>
-		</dict>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>يستخدم التطبيق الميكروفون للبحث الصوتي عن الترانيم.</string>
-		<key>NSSpeechRecognitionUsageDescription</key>
-		<string>يستخدم التطبيق التعرف على الصوت للبحث الصوتي عن الترانيم.</string>
-		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>لحفظ بطاقات اقتباسات الترانيم في معرض الصور.</string>
 		<key>FDMaximumConcurrentTasks</key>
 		<integer>5</integer>
 		<key>FDAllFilesDownloadedMessage</key>
