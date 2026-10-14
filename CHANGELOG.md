@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - iOS upload rejected (ITMS-90683): restored `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in `Info.plist`, which `permission_handler` references even though the app does not record audio. Build number bumped to 2.0.1+5.
 
 ### Changed
+- Bundled privacy policy (`assets/md/tarneemna.md`) replaced with the new policy effective 2026-10-14 (CCPA/CPRA, AI, international transfers, retention, breach notification).
 - YouTube search, playback, and downloads are disabled on iOS (App Store guidelines 5.2.2/5.2.3); iOS uses Taranim Arabia only. Android is unchanged.
 - iOS `Info.plist` prepared for App Store review: removed unused microphone, speech recognition, and photo-library usage descriptions; dropped the `NSAllowsArbitraryLoads` ATS exception (all endpoints are HTTPS); declared `ITSAppUsesNonExemptEncryption = false` to skip the export-compliance prompt.
 
