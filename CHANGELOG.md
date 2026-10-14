@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.2+6] - 2026-10-14
+
 ### Added
 - Microsoft Clarity session analytics (`clarity_flutter`), wrapping the app in `ClarityWidget`.
 - Firebase Crashlytics (`firebase_crashlytics`) for Flutter and platform errors, enabled in release builds only; Android Crashlytics Gradle plugin and an iOS dSYM upload build phase.
