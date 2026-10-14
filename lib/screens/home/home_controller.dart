@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,7 +15,6 @@ class HomeController extends GetxController {
   final RxString songTextObs = "".obs;
   final RxBool loading = false.obs;
   final RxInt recentSearchTick = 0.obs;
-  Timer? _debounceTimer;
   final SearchHistoryService _searchHistoryService = SearchHistoryService();
 
   @override
@@ -30,23 +28,8 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {
-    _debounceTimer?.cancel();
     songText.dispose();
     super.onClose();
-  }
-
-  void onSearchChanged(String text) {
-    _debounceTimer?.cancel();
-    final queryText = text.trim();
-    if (queryText.isEmpty) {
-      traneem.clear();
-      return;
-    }
-    if (queryText.length >= 2) {
-      _debounceTimer = Timer(const Duration(milliseconds: 600), () {
-        query(queryText);
-      });
-    }
   }
 
   Future<void> clearRecentSearches() async {
@@ -55,7 +38,6 @@ class HomeController extends GetxController {
   }
 
   Future<void> query(String searchQuery) async {
-    _debounceTimer?.cancel();
     final queryText = searchQuery.trim();
     if (queryText.isEmpty) {
       showCustomSnackbar(

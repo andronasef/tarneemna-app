@@ -44,7 +44,6 @@ class TarnemaSearch extends StatelessWidget {
             child: TextField(
               controller: controller.songText,
               textInputAction: TextInputAction.search,
-              onChanged: controller.onSearchChanged,
               onSubmitted: (_) => _performSearch(context),
               style: TextStyle(
                 fontSize: 15,
