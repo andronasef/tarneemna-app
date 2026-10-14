@@ -7,11 +7,8 @@ class AppDetails {
 
 class AppUrls {
   static const String whatsapp = "https://wa.me/increasinglabs";
-  static const String website = "https://promote.increasinglabs.com/l/tarneemna";
-  static const String rate =
-      "market://details?id=${AppDetails.kAppPackageName}";
-  static const String share =
-      "https://play.google.com/store/apps/details?id=${AppDetails.kAppPackageName}";
+  static const String rate = "https://promote.increasinglabs.com/l/tarneemna";
+  static const String share = rate;
   static const String moreapps = "market://search?q=pub:Increasing%20Labs";
   static const String support = "https://forms.gle/DGKYCQwtfdtGcnTH6";
   static const String privacy =

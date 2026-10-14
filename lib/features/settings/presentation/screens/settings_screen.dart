@@ -295,7 +295,7 @@ class ModernSettingsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.star_outline),
                     title: const Text('قيّم التطبيق على المتجر',
                         style: TextStyle(fontSize: 14)),
-                    onTap: () => openUrl(AppUrls.rate, fallback: AppUrls.share),
+                    onTap: () => openUrl(AppUrls.rate),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -310,13 +310,6 @@ class ModernSettingsScreen extends ConsumerWidget {
                     title: const Text('تواصل معنا عبر واتساب',
                         style: TextStyle(fontSize: 14)),
                     onTap: () => openUrl(AppUrls.whatsapp),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: const Text('صفحة التطبيق',
-                        style: TextStyle(fontSize: 14)),
-                    onTap: () => openUrl(AppUrls.website),
                   ),
                   const Divider(height: 1),
                   ListTile(
