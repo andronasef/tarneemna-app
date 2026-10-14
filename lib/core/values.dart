@@ -6,7 +6,8 @@ class AppDetails {
 }
 
 class AppUrls {
-  static const String whatsapp = "";
+  static const String whatsapp = "https://wa.me/increasinglabs";
+  static const String website = "https://promote.increasinglabs.com/l/tarneemna";
   static const String rate =
       "market://details?id=${AppDetails.kAppPackageName}";
   static const String share =

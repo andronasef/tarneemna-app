@@ -306,6 +306,20 @@ class ModernSettingsScreen extends ConsumerWidget {
                   ),
                   const Divider(height: 1),
                   ListTile(
+                    leading: const Icon(Icons.chat_outlined),
+                    title: const Text('تواصل معنا عبر واتساب',
+                        style: TextStyle(fontSize: 14)),
+                    onTap: () => openUrl(AppUrls.whatsapp),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: const Text('صفحة التطبيق',
+                        style: TextStyle(fontSize: 14)),
+                    onTap: () => openUrl(AppUrls.website),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
                     leading: const Icon(Icons.privacy_tip_outlined),
                     title: const Text('سياسة الخصوصية',
                         style: TextStyle(fontSize: 14)),
