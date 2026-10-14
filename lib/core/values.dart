@@ -1,8 +1,14 @@
+import 'package:flutter/foundation.dart';
+
 class AppDetails {
   static const String kAppName = "ترانيمنا";
   static const String kAppPackageName = "com.increase.tarneemna";
   static const String kAppShortname = "tarneemna";
 }
+
+/// YouTube search/playback is Android-only: App Store guideline 5.2.3 bars
+/// streaming or downloading YouTube audio inside an iOS app.
+bool get kYouTubeEnabled => defaultTargetPlatform != TargetPlatform.iOS;
 
 class AppUrls {
   static const String whatsapp = "";

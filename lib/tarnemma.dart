@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:tarneemna/core/values.dart';
 import 'package:tarneemna/features/downloads/data/sources/download_manager_service.dart';
 import 'package:tarneemna/features/downloads/data/sources/offline_storage_service.dart';
 import 'package:tarneemna/features/downloads/domain/entities/downloaded_hymn.dart';
@@ -91,10 +92,11 @@ class Tarnemma {
         ),
       );
 
-      final hymns = await hybridRepo.searchHymns(query);
+      final hymns = await hybridRepo.searchHymns(query, includeYouTube: kYouTubeEnabled);
       return hymns.map((h) => Tarnemma.fromHymn(h)).toList();
     } catch (e) {
-      if (kDebugMode) print("Hybrid search error, falling back to YouTube: $e");
+      if (kDebugMode) print("Hybrid search error: $e");
+      if (!kYouTubeEnabled) rethrow;
       return _searchYouTubeOnly(query);
     }
   }

@@ -11,6 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
 import 'core/connectivity.dart';
+import 'core/values.dart';
 import 'features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'features/audio/presentation/providers/audio_providers.dart';
 import 'features/downloads/data/sources/offline_storage_service.dart';
@@ -76,7 +77,7 @@ Future<void> main(List<String> args) async {
   Net.init();
 
   // YouTube JS solver boots a WebView; don't block first frame on it.
-  unawaited(YouTubeAudioResolver.init());
+  if (kYouTubeEnabled) unawaited(YouTubeAudioResolver.init());
 
   runApp(
     ProviderScope(
