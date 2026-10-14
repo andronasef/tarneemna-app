@@ -286,9 +286,15 @@ class ModernSettingsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.share_outlined),
                     title: const Text('شارك التطبيق مع أصدقائك',
                         style: TextStyle(fontSize: 14)),
-                    onTap: () => Share.share(
-                      'استمع وحمل آلاف الترانيم الروحية عبر تطبيق ${AppDetails.kAppName}: ${AppUrls.share}',
-                    ),
+                    onTap: () {
+                      // iPad requires a non-zero popover origin for the share sheet.
+                      final box = context.findRenderObject() as RenderBox?;
+                      Share.share(
+                        'استمع وحمل آلاف الترانيم الروحية عبر تطبيق ${AppDetails.kAppName}: ${AppUrls.share}',
+                        sharePositionOrigin:
+                            box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+                      );
+                    },
                   ),
                   const Divider(height: 1),
                   ListTile(

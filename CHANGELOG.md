@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Firebase Crashlytics (`firebase_crashlytics`) for Flutter and platform errors, enabled in release builds only; Android Crashlytics Gradle plugin and an iOS dSYM upload build phase.
 
 ### Fixed
+- iOS/iPad: share sheet (app share and lyric quote card) failed because no popover origin was passed; it is now set.
 - iOS upload rejected (ITMS-90683): restored `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in `Info.plist`, which `permission_handler` references even though the app does not record audio. Build number bumped to 2.0.1+5.
 
 ### Changed

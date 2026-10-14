@@ -49,6 +49,9 @@ class _QuoteCardDialogState extends State<QuoteCardDialog> {
   }
 
   Future<void> _exportAndShareCard() async {
+    // iPad requires a non-zero popover origin for the share sheet.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
     setState(() => _isExporting = true);
     try {
       final boundary = _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
@@ -66,6 +69,7 @@ class _QuoteCardDialogState extends State<QuoteCardDialog> {
       await Share.shareXFiles(
         [XFile(file.path)],
         text: 'ترنيمة: ${widget.hymn.title}\nتطبيق ${AppDetails.kAppName}',
+        sharePositionOrigin: origin,
       );
     } catch (e) {
       if (kDebugMode) print('Error generating quote card: $e');
