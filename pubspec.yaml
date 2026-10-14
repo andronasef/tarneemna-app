@@ -37,6 +37,8 @@ dependencies:
   flutter_native_splash: ^2.3.7
   youtube_explode_webview: ^0.0.2
   package_info_plus: ^9.0.1
+  firebase_crashlytics: ^3.5.7
+  clarity_flutter: ^1.10.1
 
 dev_dependencies:
   flutter_test:

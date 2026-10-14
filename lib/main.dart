@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -11,6 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
 import 'core/connectivity.dart';
+import 'core/values.dart';
 import 'features/audio/data/sources/tarneemna_audio_handler.dart';
 import 'features/audio/presentation/providers/audio_providers.dart';
 import 'features/downloads/data/sources/offline_storage_service.dart';
@@ -30,6 +33,18 @@ Future<void> main(List<String> args) async {
   // Wait for the native splash screen to finish (2 seconds)
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   Future.delayed(const Duration(seconds: 2), () => FlutterNativeSplash.remove());
+
+  // Initialize Firebase first so Crashlytics catches errors during startup
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseCrashlytics.instance
+      .setCrashlyticsCollectionEnabled(!kDebugMode);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   // Initialize Hive
   await Hive.initFlutter();
@@ -62,11 +77,6 @@ Future<void> main(List<String> args) async {
   );
   Player.init(audioHandler);
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
   try {
     await FlutterDownloader.initialize(debug: kDebugMode);
   } catch (e) {
@@ -87,7 +97,10 @@ Future<void> main(List<String> args) async {
         settingsServiceProvider.overrideWithValue(settingsService),
         audioHandlerProvider.overrideWithValue(audioHandler),
       ],
-      child: const App(),
+      child: ClarityWidget(
+        app: const App(),
+        clarityConfig: ClarityConfig(projectId: AppDetails.kClarityProjectId),
+      ),
     ),
   );
 }

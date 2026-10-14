@@ -2,6 +2,7 @@ class AppDetails {
   static const String kAppName = "ترانيمنا";
   static const String kAppPackageName = "com.increase.tarneemna";
   static const String kAppShortname = "tarneemna";
+  static const String kClarityProjectId = "yxia4d7rxn";
 }
 
 class AppUrls {
